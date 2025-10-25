@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 // ============================ PAGES ============================
 import 'AccountsPage.dart';
 import 'RegisterPage.dart';
+import 'HomePage.dart';
 // ============================ END ============================
 
 class LoginPage extends StatelessWidget {
@@ -10,9 +11,145 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
-      body: const Center(
-        child: Text('This is the login page'),
+      // ============================ AppBar ============================
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: Colors.transparent,
+        title: Text('ReTide', style: TextStyle(color: Colors.white)),
+      ),
+      // ============================ END ============================
+
+      // ============================ Hamburger Menu ============================
+      endDrawer: Drawer(
+        backgroundColor: Colors.black,
+        child: ListView(
+          padding: EdgeInsets.all(16.0),
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(color: Colors.black),
+              child: Text(
+                'ReTide',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+
+      // ============================ END ============================
+      body: Align(
+        alignment: Alignment.center,
+
+        // ============================ Title and Subtitle ============================
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Login',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 20),
+
+            Column(
+              children: [
+                Text(
+                  'Masukkan email dan password untuk login',
+                  style: TextStyle(color: Colors.white),
+                ),
+                SizedBox(height: 64),
+              ],
+            ),
+
+            // ============================ END ============================
+
+            // ============================ Email TextField ============================
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 32.0),
+              child: TextField(
+                style: TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  labelStyle: TextStyle(color: Colors.white),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white),
+                    borderRadius: BorderRadius.all(Radius.circular(8.0)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF63CFC0)),
+                    borderRadius: BorderRadius.all(Radius.circular(8.0)),
+                  ),
+                ),
+              ),
+            ),
+
+            // ============================ END ============================
+            SizedBox(height: 16),
+
+            // ============================ Password Textfield ============================
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 32.0),
+              child: TextField(
+                style: TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  labelStyle: TextStyle(color: Colors.white),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white),
+                    borderRadius: BorderRadius.all(Radius.circular(8.0)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF63CFC0)),
+                    borderRadius: BorderRadius.all(Radius.circular(8.0)),
+                  ),
+                ),
+              ),
+            ),
+
+            // ============================ END ============================
+            SizedBox(height: 16),
+
+            // ============================ Login Button ============================
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const HomePage()),
+                  (Route<dynamic> route) => false,
+                );
+              },
+
+              label: const Text(
+                "Login",
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 14,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+            ),
+            // ============================ END ============================
+          ],
+        ),
       ),
     );
   }
