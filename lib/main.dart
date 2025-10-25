@@ -1,7 +1,15 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+// ============================ PAGES ============================
+import 'pages/LoginPage.dart';
+import 'pages/RegisterPage.dart';
+import 'pages/AccountsPage.dart';
+import 'pages/BlogPage.dart';
+import 'pages/MarketplacePage.dart';
+import 'pages/DonationPage.dart';
+import 'pages/HomePage.dart';
+// ============================ END ============================
 
 void main() {
   runApp(const MyApp());
@@ -39,9 +47,10 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       // ============================ AppBar ============================
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.transparent,
         title: Text('ReTide', style: TextStyle(color: Colors.white)),
       ),
       // ============================ END ============================
@@ -56,7 +65,7 @@ class _MyHomePageState extends State<MyHomePage> {
               decoration: BoxDecoration(color: Colors.black),
               child: Text(
                 'ReTide',
-                style: TextStyle(color: Colors.white, fontSize: 24),
+                style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -125,7 +134,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const AccountPage(), // MASIH BELOM!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                        builder: (context) => const LoginPage(),
                       ),
                     );
                   },
