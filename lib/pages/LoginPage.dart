@@ -40,8 +40,8 @@ class LoginPage extends StatelessWidget {
           ],
         ),
       ),
-
       // ============================ END ============================
+
       body: Align(
         alignment: Alignment.center,
 
@@ -116,6 +116,26 @@ class LoginPage extends StatelessWidget {
 
             // ============================ END ============================
             SizedBox(height: 16),
+
+            // ============================ Text: Belum punya akun? ============================
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const RegisterPage()),
+                );
+              },
+              child: const Text(
+                "Belum punya akun? Daftar di sini",
+                style: TextStyle(
+                  color: Color(0xFF63CFC0),
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+            // ============================ END ============================
+
+            const SizedBox(height: 16),
 
             // ============================ Login Button ============================
             ElevatedButton.icon(
