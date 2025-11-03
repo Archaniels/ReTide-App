@@ -65,6 +65,10 @@ class _HomePageState extends State<HomePage> {
                   ),
                   fit: BoxFit.cover,
                 ),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(16),
+                  bottomRight: Radius.circular(16),
+                ),
               ),
             ),
           ),
@@ -117,10 +121,115 @@ class _HomePageState extends State<HomePage> {
           
           const SizedBox(height: 24),
 
+        // ============================ Impact Dashboard ============================
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Your Impact',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ImpactCardBuilder(
+                          icon: Icons.eco,
+                          value: '24',
+                          label: 'Items Recycled',
+                          color: Color(0xFF63CFC0),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ImpactCardBuilder(
+                          icon: Icons.water_drop,
+                          value: '156L',
+                          label: 'Water Saved',
+                          color: Color(0xFF4A9FE8),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ImpactCardBuilder(
+                          icon: Icons.co2,
+                          value: '12kg',
+                          label: 'CO₂ Reduced',
+                          color: Color(0xFF7CB342),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+
+                      Expanded(
+                        child: ImpactCardBuilder(
+                          icon: Icons.volunteer_activism,
+                          value: 'Rp 500k',
+                          label: 'Donated',
+                          color: Color(0xFFFF6B6B),
+                        ),
+                      ),
+
+                      const SizedBox(width: 12),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // ============================ END ============================
         ],
       ),
     );
   }
+
+   // ============================ Impact Card Builder ============================
+  Widget ImpactCardBuilder({
+    required IconData icon,
+    required String value,
+    required String label,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Color.fromARGB(255, 28, 28, 28),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: color, size: 28),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.grey[400],
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  // ============================ END ============================
 
   // ============================ Reusable Feature Widget ============================
   Widget FeatureButton(
