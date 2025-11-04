@@ -20,28 +20,6 @@ class RegisterPage extends StatelessWidget {
       ),
       // ============================ END ============================
 
-      // ============================ Hamburger Menu ============================
-      endDrawer: Drawer(
-        backgroundColor: Colors.black,
-        child: ListView(
-          padding: EdgeInsets.all(16.0),
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(color: Colors.black),
-              child: Text(
-                'ReTide',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-
-      // ============================ END ============================
       body: Align(
         alignment: Alignment.center,
 

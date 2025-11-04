@@ -23,7 +23,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'ReTide',
-      // Default Theme of Application
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Color(0xFF63CFC0)),
         textTheme: GoogleFonts.poppinsTextTheme(),
