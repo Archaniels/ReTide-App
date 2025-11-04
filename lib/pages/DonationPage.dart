@@ -68,7 +68,7 @@ class _DonationPageState extends State<DonationPage> {
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: NetworkImage('assets/images/donationbg.jpg'),
+                image: const AssetImage('assets/images/donationbg.jpg'),
                 fit: BoxFit.cover,
               ),
             ),
