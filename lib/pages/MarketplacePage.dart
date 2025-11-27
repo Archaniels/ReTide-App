@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+// ============================ FIREBASE ============================
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:retide_app/firebase_options.dart';
+import 'package:retide_app/firestore_service.dart';
+// ============================ END ============================
 // ============================ PAGES ============================
 import 'AccountsPage.dart';
 import 'BlogPage.dart';
@@ -17,10 +23,16 @@ class MarketplacePage extends StatefulWidget {
 
 class _MarketplacePageState extends State<MarketplacePage> {
   final List<Map<String, dynamic>> _cart = [];
-  
+  final FirestoreService firestoreService = FirestoreService();
+
   // ============================ Filter State ============================
   String _selectedCondition = 'Semua'; // Default: tampilkan semua
-  final List<String> _conditions = ['Semua', 'Baru', 'Bekas Layak', 'Daur Ulang'];
+  final List<String> _conditions = [
+    'Semua',
+    'Baru',
+    'Bekas Layak',
+    'Daur Ulang',
+  ];
   // ============================ END ============================
 
   // ============================ Product List (dengan kondisi) ============================
@@ -35,7 +47,8 @@ class _MarketplacePageState extends State<MarketplacePage> {
     {
       'name': 'Reusable Bottle',
       'price': 100000,
-      'image': 'assets/images/Dangers-Of-Not-Cleaning-Your-Reusable-Water-Bottlejpg.webp',
+      'image':
+          'assets/images/Dangers-Of-Not-Cleaning-Your-Reusable-Water-Bottlejpg.webp',
       'condition': 'Baru',
       'description': 'Botol minum stainless steel premium',
     },
@@ -49,7 +62,8 @@ class _MarketplacePageState extends State<MarketplacePage> {
     {
       'name': 'Organic Cotton Shirt',
       'price': 30000,
-      'image': 'assets/images/RECOVER_OG100_ORGANICSHORTSLEEVETSHIRT_BLACK_FRONT_2048x2048.webp',
+      'image':
+          'assets/images/RECOVER_OG100_ORGANICSHORTSLEEVETSHIRT_BLACK_FRONT_2048x2048.webp',
       'condition': 'Bekas Layak',
       'description': 'Kaos katun organik kondisi sangat baik',
     },
@@ -77,7 +91,8 @@ class _MarketplacePageState extends State<MarketplacePage> {
     {
       'name': 'Glass Food Container',
       'price': 75000,
-      'image': 'assets/images/93594_KSP_Divided_Glass_600ml_Storage_Container__Clear_White.webp',
+      'image':
+          'assets/images/93594_KSP_Divided_Glass_600ml_Storage_Container__Clear_White.webp',
       'condition': 'Bekas Layak',
       'description': 'Wadah makanan kaca, kondisi mulus',
     },
@@ -166,189 +181,212 @@ class _MarketplacePageState extends State<MarketplacePage> {
           ],
         ),
       ),
+
       // ============================ END ============================
+      body: StreamBuilder(
+        stream: firestoreService.getUsers(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return const Center(child: Text('Terjadi kesalahan'));
+          }
+          final docs = snapshot.data?.docs ?? [];
+          if (docs.isEmpty) {
+            return const Center(child: Text('Tidak ada data'));
+          }
 
-      body: SafeArea(
-        child: Container(
-          color: Colors.black,
-          child: Column(
-            children: [
-              // ============================ Header ============================
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 16.0,
-                  horizontal: 16.0,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      "Explore Products",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
+          return SafeArea(
+            child: Container(
+              color: Colors.black,
+              child: Column(
+                children: [
+                  // ============================ Header ============================
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 16.0,
+                      horizontal: 16.0,
                     ),
-                    Stack(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        IconButton(
-                          icon: const Icon(
-                            Icons.shopping_cart,
-                            color: Colors.white,
-                          ),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => CartPage(cartItems: _cart),
-                              ),
-                            );
-                          },
-                        ),
-                        if (_cart.isNotEmpty)
-                          Positioned(
-                            right: 8,
-                            top: 8,
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF63CFC0),
-                                shape: BoxShape.circle,
-                              ),
-                              constraints: const BoxConstraints(
-                                minWidth: 16,
-                                minHeight: 16,
-                              ),
-                              child: Text(
-                                '${_cart.length}',
-                                style: const TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              // ============================ END ============================
-
-              // ============================ Filter Section ============================
-              Container(
-                height: 60,
-                margin: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: _conditions.length,
-                  itemBuilder: (context, index) {
-                    final condition = _conditions[index];
-                    final isSelected = _selectedCondition == condition;
-                    
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: FilterChip(
-                        label: Text(
-                          condition,
+                        const Text(
+                          "Explore Products",
                           style: TextStyle(
-                            color: isSelected ? Colors.black : Colors.white,
-                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                        selected: isSelected,
-                        onSelected: (selected) {
-                          setState(() {
-                            _selectedCondition = condition;
-                          });
-                        },
-                        backgroundColor: const Color.fromARGB(255, 28, 28, 28),
-                        selectedColor: const Color(0xFF63CFC0),
-                        checkmarkColor: Colors.black,
-                        side: BorderSide(
-                          color: isSelected 
-                              ? const Color(0xFF63CFC0) 
-                              : Colors.white24,
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              // ============================ END ============================
-
-              const SizedBox(height: 16),
-
-              // ============================ Product Count ============================
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '${_filteredProducts.length} Produk Tersedia',
-                      style: TextStyle(
-                        color: Colors.grey[400],
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // ============================ END ============================
-
-              // ============================ Product Grid ============================
-              Expanded(
-                child: _filteredProducts.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                        Stack(
                           children: [
-                            Icon(
-                              Icons.inventory_2_outlined,
-                              size: 64,
-                              color: Colors.grey[600],
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Tidak ada produk dengan kondisi ini',
-                              style: TextStyle(
-                                color: Colors.grey[400],
-                                fontSize: 16,
+                            IconButton(
+                              icon: const Icon(
+                                Icons.shopping_cart,
+                                color: Colors.white,
                               ),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => CartPage(cartItems: _cart),
+                                  ),
+                                );
+                              },
                             ),
+                            if (_cart.isNotEmpty)
+                              Positioned(
+                                right: 8,
+                                top: 8,
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFF63CFC0),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  constraints: const BoxConstraints(
+                                    minWidth: 16,
+                                    minHeight: 16,
+                                  ),
+                                  child: Text(
+                                    '${_cart.length}',
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
                           ],
                         ),
-                      )
-                    : Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                        child: GridView.builder(
-                          itemCount: _filteredProducts.length,
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 12,
-                            childAspectRatio: 0.65,
+                      ],
+                    ),
+                  ),
+                  // ============================ END ============================
+
+                  // ============================ Filter Section ============================
+                  Container(
+                    height: 60,
+                    margin: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _conditions.length,
+                      itemBuilder: (context, index) {
+                        final condition = _conditions[index];
+                        final isSelected = _selectedCondition == condition;
+
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: FilterChip(
+                            label: Text(
+                              condition,
+                              style: TextStyle(
+                                color: isSelected ? Colors.black : Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            selected: isSelected,
+                            onSelected: (selected) {
+                              setState(() {
+                                _selectedCondition = condition;
+                              });
+                            },
+                            backgroundColor: const Color.fromARGB(
+                              255,
+                              28,
+                              28,
+                              28,
+                            ),
+                            selectedColor: const Color(0xFF63CFC0),
+                            checkmarkColor: Colors.black,
+                            side: BorderSide(
+                              color: isSelected
+                                  ? const Color(0xFF63CFC0)
+                                  : Colors.white24,
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
                           ),
-                          itemBuilder: (context, index) {
-                            final product = _filteredProducts[index];
-                            return _buildProductCard(product);
-                          },
+                        );
+                      },
+                    ),
+                  ),
+
+                  // ============================ END ============================
+                  const SizedBox(height: 16),
+
+                  // ============================ Product Count ============================
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${_filteredProducts.length} Produk Tersedia',
+                          style: TextStyle(
+                            color: Colors.grey[400],
+                            fontSize: 14,
+                          ),
                         ),
-                      ),
+                      ],
+                    ),
+                  ),
+                  // ============================ END ============================
+
+                  // ============================ Product Grid ============================
+                  Expanded(
+                    child: _filteredProducts.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.inventory_2_outlined,
+                                  size: 64,
+                                  color: Colors.grey[600],
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Tidak ada produk dengan kondisi ini',
+                                  style: TextStyle(
+                                    color: Colors.grey[400],
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12.0,
+                            ),
+                            child: GridView.builder(
+                              itemCount: _filteredProducts.length,
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 2,
+                                    crossAxisSpacing: 12,
+                                    mainAxisSpacing: 12,
+                                    childAspectRatio: 0.65,
+                                  ),
+                              itemBuilder: (context, index) {
+                                final product = _filteredProducts[index];
+                                return _buildProductCard(product);
+                              },
+                            ),
+                          ),
+                  ),
+                  // ============================ END ============================
+                ],
               ),
-              // ============================ END ============================
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -376,8 +414,9 @@ class _MarketplacePageState extends State<MarketplacePage> {
           Stack(
             children: [
               ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(16)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(16),
+                ),
                 child: Image.network(
                   product['image'],
                   height: 140,
@@ -435,14 +474,11 @@ class _MarketplacePageState extends State<MarketplacePage> {
                   if (product['description'] != null)
                     Text(
                       product['description'],
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey[500],
-                      ),
+                      style: TextStyle(fontSize: 11, color: Colors.grey[500]),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                  
+
                   const Spacer(),
 
                   // Product price
@@ -481,7 +517,9 @@ class _MarketplacePageState extends State<MarketplacePage> {
                         });
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('${product['name']} ditambahkan ke keranjang!'),
+                            content: Text(
+                              '${product['name']} ditambahkan ke keranjang!',
+                            ),
                             duration: const Duration(seconds: 2),
                             backgroundColor: const Color(0xFF63CFC0),
                           ),
@@ -506,5 +544,6 @@ class _MarketplacePageState extends State<MarketplacePage> {
       ),
     );
   }
+
   // ============================ END ============================
 }

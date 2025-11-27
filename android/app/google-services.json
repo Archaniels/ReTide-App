@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "855310351966",
+    "project_id": "retide-6fb42",
+    "storage_bucket": "retide-6fb42.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:855310351966:android:364f56a98781e53cc93ecf",
+        "android_client_info": {
+          "package_name": "com.example.retide_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDjfekYDYLQ11asqtkrBw0aQljPQlFbA7o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

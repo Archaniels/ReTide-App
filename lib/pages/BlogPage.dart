@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+// ============================ FIREBASE ============================
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:retide_app/firebase_options.dart';
+import 'package:retide_app/firestore_service.dart';
+// ============================ END ============================
 // ============================ PAGES ============================
 import 'AccountsPage.dart';
 import 'MarketplacePage.dart';
@@ -18,7 +24,8 @@ class _BlogPageState extends State<BlogPage> {
   final List<Map<String, dynamic>> _blogPosts = [
     {
       'title': 'From the Depths of the Sea',
-      'content': 'A global investigation into the growing ocean plastic crisis, this documentary tracks how waste travels from our streets to the seas, devastating marine ecosystems and endangering food chains.',
+      'content':
+          'A global investigation into the growing ocean plastic crisis, this documentary tracks how waste travels from our streets to the seas, devastating marine ecosystems and endangering food chains.',
       'author': 'Admin',
       'date': 'Nov 1, 2025',
       'category': 'Environment',
@@ -27,7 +34,8 @@ class _BlogPageState extends State<BlogPage> {
     },
     {
       'title': 'Dark Blue',
-      'content': 'A global investigation into the growing ocean plastic crisis, this documentary tracks how waste travels from our streets to the seas, devastating marine ecosystems and endangering food chains.',
+      'content':
+          'A global investigation into the growing ocean plastic crisis, this documentary tracks how waste travels from our streets to the seas, devastating marine ecosystems and endangering food chains.',
       'author': 'Admin',
       'date': 'Oct 25, 2025',
       'category': 'Impact',
@@ -36,7 +44,8 @@ class _BlogPageState extends State<BlogPage> {
     },
     {
       'title': 'Sea of Debris',
-      'content': 'A global investigation into the growing ocean plastic crisis, this documentary tracks how waste travels from our streets to the seas, devastating marine ecosystems and endangering food chains.',
+      'content':
+          'A global investigation into the growing ocean plastic crisis, this documentary tracks how waste travels from our streets to the seas, devastating marine ecosystems and endangering food chains.',
       'author': 'Admin',
       'date': 'Oct 20, 2025',
       'category': 'Education',
@@ -45,7 +54,8 @@ class _BlogPageState extends State<BlogPage> {
     },
     {
       'title': 'Ghost Nets',
-      'content': 'A global investigation into the growing ocean plastic crisis, this documentary tracks how waste travels from our streets to the seas, devastating marine ecosystems and endangering food chains.',
+      'content':
+          'A global investigation into the growing ocean plastic crisis, this documentary tracks how waste travels from our streets to the seas, devastating marine ecosystems and endangering food chains.',
       'author': 'Admin',
       'date': 'Oct 15, 2025',
       'category': 'Lifestyle',
@@ -54,7 +64,8 @@ class _BlogPageState extends State<BlogPage> {
     },
     {
       'title': 'The Blue Wound',
-      'content': 'A global investigation into the growing ocean plastic crisis, this documentary tracks how waste travels from our streets to the seas, devastating marine ecosystems and endangering food chains.',
+      'content':
+          'A global investigation into the growing ocean plastic crisis, this documentary tracks how waste travels from our streets to the seas, devastating marine ecosystems and endangering food chains.',
       'author': 'Admin',
       'date': 'Oct 10, 2025',
       'category': 'Tips',
@@ -63,7 +74,6 @@ class _BlogPageState extends State<BlogPage> {
     },
   ];
   // ============================ END ============================
-
 
   @override
   Widget build(BuildContext context) {
@@ -122,8 +132,8 @@ class _BlogPageState extends State<BlogPage> {
           ],
         ),
       ),
-      // ============================ END ============================
 
+      // ============================ END ============================
       body: SafeArea(
         child: Column(
           children: [
@@ -144,10 +154,7 @@ class _BlogPageState extends State<BlogPage> {
                   const SizedBox(height: 8),
                   Text(
                     'Stories, tips, and insights for a greener future',
-                    style: TextStyle(
-                      color: Colors.grey[400],
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: Colors.grey[400], fontSize: 14),
                   ),
                 ],
               ),
@@ -212,7 +219,10 @@ class _BlogPageState extends State<BlogPage> {
               children: [
                 // Category Badge
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFF63CFC0).withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(4),
@@ -264,10 +274,7 @@ class _BlogPageState extends State<BlogPage> {
                     const SizedBox(width: 4),
                     Text(
                       post['author'],
-                      style: TextStyle(
-                        color: Colors.grey[500],
-                        fontSize: 12,
-                      ),
+                      style: TextStyle(color: Colors.grey[500], fontSize: 12),
                     ),
                     const SizedBox(width: 16),
                     Icon(
@@ -278,29 +285,19 @@ class _BlogPageState extends State<BlogPage> {
                     const SizedBox(width: 4),
                     Text(
                       post['date'],
-                      style: TextStyle(
-                        color: Colors.grey[500],
-                        fontSize: 12,
-                      ),
+                      style: TextStyle(color: Colors.grey[500], fontSize: 12),
                     ),
                     const SizedBox(width: 16),
-                    Icon(
-                      Icons.access_time,
-                      size: 14,
-                      color: Colors.grey[500],
-                    ),
+                    Icon(Icons.access_time, size: 14, color: Colors.grey[500]),
                     const SizedBox(width: 4),
                     Text(
                       post['readTime'],
-                      style: TextStyle(
-                        color: Colors.grey[500],
-                        fontSize: 12,
-                      ),
+                      style: TextStyle(color: Colors.grey[500], fontSize: 12),
                     ),
                   ],
                 ),
+
                 // ============================ END ============================
-                
                 const SizedBox(height: 12),
 
                 // ============================ Read More ============================
@@ -340,5 +337,6 @@ class _BlogPageState extends State<BlogPage> {
       ),
     );
   }
+
   // ============================ END ============================
 }

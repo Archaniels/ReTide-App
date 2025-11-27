@@ -1,6 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:retide_app/firebase_options.dart';
 // ============================ PAGES ============================
 import 'pages/LoginPage.dart';
 import 'pages/RegisterPage.dart';
@@ -11,7 +13,9 @@ import 'pages/DonationPage.dart';
 import 'pages/HomePage.dart';
 // ============================ END ============================
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 
@@ -64,14 +68,18 @@ class _MyHomePageState extends State<MyHomePage> {
               decoration: BoxDecoration(color: Colors.black),
               child: Text(
                 'ReTide',
-                style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
         ),
       ),
-      // ============================ END ============================
 
+      // ============================ END ============================
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -142,7 +150,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   label: const Text(
                     "Start",
                     style: TextStyle(
-                      color:  Colors.black,
+                      color: Colors.black,
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                     ),
