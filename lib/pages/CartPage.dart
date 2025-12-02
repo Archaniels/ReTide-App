@@ -82,7 +82,7 @@ class CartPage extends StatelessWidget {
                 style: TextStyle(color: Colors.white, fontSize: 18),
               ),
             )
-            // If NOT Empty
+          // If NOT Empty
           : ListView.builder(
               itemCount: cartItems.length,
               itemBuilder: (context, index) {

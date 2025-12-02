@@ -183,21 +183,22 @@ class _MarketplacePageState extends State<MarketplacePage> {
       ),
 
       // ============================ END ============================
-      body: StreamBuilder(
-        stream: firestoreService.getUsers(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return const Center(child: Text('Terjadi kesalahan'));
-          }
-          final docs = snapshot.data?.docs ?? [];
-          if (docs.isEmpty) {
-            return const Center(child: Text('Tidak ada data'));
-          }
+      body: 
+      // StreamBuilder(
+      //   stream: firestoreService.getUsers(),
+      //   builder: (context, snapshot) {
+      //     if (snapshot.connectionState == ConnectionState.waiting) {
+      //       return const Center(child: CircularProgressIndicator());
+      //     }
+      //     if (snapshot.hasError) {
+      //       return const Center(child: Text('Terjadi kesalahan'));
+      //     }
+      //     final docs = snapshot.data?.docs ?? [];
+      //     if (docs.isEmpty) {
+      //       return const Center(child: Text('Tidak ada data'));
+      //     }
 
-          return SafeArea(
+          SafeArea(
             child: Container(
               color: Colors.black,
               child: Column(
@@ -385,10 +386,8 @@ class _MarketplacePageState extends State<MarketplacePage> {
                 ],
               ),
             ),
-          );
-        },
-      ),
-    );
+          )
+        );
   }
 
   // ============================ Drawer helper ============================

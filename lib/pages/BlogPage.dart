@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-// ============================ FIREBASE ============================
-import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:retide_app/services/firebase_options.dart';
 import 'package:retide_app/services/firestore_service.dart';
-// ============================ END ============================
+import 'package:intl/intl.dart';
+
 // ============================ PAGES ============================
 import 'AccountsPage.dart';
 import 'MarketplacePage.dart';
@@ -20,60 +18,257 @@ class BlogPage extends StatefulWidget {
 }
 
 class _BlogPageState extends State<BlogPage> {
-  // ============================ Blog Posts Data ============================
-  final List<Map<String, dynamic>> _blogPosts = [
-    {
-      'title': 'From the Depths of the Sea',
-      'content':
-          'A global investigation into the growing ocean plastic crisis, this documentary tracks how waste travels from our streets to the seas, devastating marine ecosystems and endangering food chains.',
-      'author': 'Admin',
-      'date': 'Nov 1, 2025',
-      'category': 'Environment',
-      'readTime': '5 min',
-      'image': 'assets/images/blog/fromthedepthsofthesea.png',
-    },
-    {
-      'title': 'Dark Blue',
-      'content':
-          'A global investigation into the growing ocean plastic crisis, this documentary tracks how waste travels from our streets to the seas, devastating marine ecosystems and endangering food chains.',
-      'author': 'Admin',
-      'date': 'Oct 25, 2025',
-      'category': 'Impact',
-      'readTime': '6 min',
-      'image': 'assets/images/blog/darkblue.png',
-    },
-    {
-      'title': 'Sea of Debris',
-      'content':
-          'A global investigation into the growing ocean plastic crisis, this documentary tracks how waste travels from our streets to the seas, devastating marine ecosystems and endangering food chains.',
-      'author': 'Admin',
-      'date': 'Oct 20, 2025',
-      'category': 'Education',
-      'readTime': '8 min',
-      'image': 'assets/images/blog/seaofdebris.png',
-    },
-    {
-      'title': 'Ghost Nets',
-      'content':
-          'A global investigation into the growing ocean plastic crisis, this documentary tracks how waste travels from our streets to the seas, devastating marine ecosystems and endangering food chains.',
-      'author': 'Admin',
-      'date': 'Oct 15, 2025',
-      'category': 'Lifestyle',
-      'readTime': '5 min',
-      'image': 'assets/images/blog/ghostnets.png',
-    },
-    {
-      'title': 'The Blue Wound',
-      'content':
-          'A global investigation into the growing ocean plastic crisis, this documentary tracks how waste travels from our streets to the seas, devastating marine ecosystems and endangering food chains.',
-      'author': 'Admin',
-      'date': 'Oct 10, 2025',
-      'category': 'Tips',
-      'readTime': '7 min',
-      'image': 'assets/images/blog/thebluewound.png',
-    },
+  String? selectedCategory;
+
+  final List<String> _categories = [
+    'Environment',
+    'Impact',
+    'Education',
+    'Lifestyle',
+    'Tips',
   ];
-  // ============================ END ============================
+
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController contentController = TextEditingController();
+  final TextEditingController authorController = TextEditingController();
+  final TextEditingController readTimeController = TextEditingController();
+  final TextEditingController imageController = TextEditingController();
+  final FirestoreService firestoreService = FirestoreService();
+
+  String? _editingBlogPostId;
+
+  void _showAddForm({String? id}) {
+    _editingBlogPostId = id;
+
+    if (id != null) {
+      _loadBlogPostForEditing(id);
+    } else {
+      // Clear controllers untuk post baru
+      titleController.clear();
+      contentController.clear();
+      authorController.clear();
+      readTimeController.clear();
+      imageController.clear();
+      selectedCategory = null;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: titleController,
+              decoration: const InputDecoration(
+                labelText: 'Title',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: contentController,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                labelText: 'Content',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: authorController,
+              decoration: const InputDecoration(
+                labelText: 'Author',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: readTimeController,
+              decoration: const InputDecoration(
+                labelText: 'Read Time (e.g., 5 min)',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: imageController,
+              decoration: const InputDecoration(
+                labelText: 'Image Location or URL',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              value: selectedCategory,
+              initialValue: selectedCategory,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please select a category';
+                }
+                return null;
+              },
+              items: _categories.map((category) {
+                return DropdownMenuItem(value: category, child: Text(category));
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  selectedCategory = value;
+                });
+              },
+              decoration: const InputDecoration(
+                labelText: 'Category',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () async {
+                await _formSubmission();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF63CFC0),
+                foregroundColor: Colors.black,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+              ),
+              child: Text(_editingBlogPostId != null ? "Update" : "Add"),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _loadBlogPostForEditing(String id) async {
+    try {
+      final blogPost = await firestoreService.getBlogPost(id);
+      if (blogPost != null && mounted) {
+        setState(() {
+          titleController.text = blogPost.title;
+          contentController.text = blogPost.content;
+          authorController.text = blogPost.author;
+          readTimeController.text = blogPost.readTime;
+          imageController.text = blogPost.image;
+          selectedCategory = blogPost.category;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal untuk menampilkan blog posts: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _formSubmission() async {
+    final title = titleController.text.trim();
+    final content = contentController.text.trim();
+    final author = authorController.text.trim();
+    final readTime = readTimeController.text.trim();
+    final image = imageController.text.trim();
+
+    if (title.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Title tidak boleh kosong!')),
+        );
+      }
+      return;
+    }
+
+    if (content.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Content tidak boleh kosong!')),
+        );
+      }
+      return;
+    }
+
+    if (author.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Author tidak boleh kosong!')),
+        );
+      }
+      return;
+    }
+
+    if (readTime.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Read time tidak boleh kosong!')),
+        );
+      }
+      return;
+    }
+
+    if (image.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Image tidak boleh kosong!')),
+        );
+      }
+      return;
+    }
+
+    if (selectedCategory == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Category tidak boleh kosong!')),
+        );
+      }
+      return;
+    }
+
+    try {
+      if (_editingBlogPostId != null) {
+        // Update blog post
+        await firestoreService.updateBlogPost(
+          _editingBlogPostId!,
+          title,
+          content,
+          author,
+          selectedCategory!,
+          readTime,
+          image,
+        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Blog post berhasil diupdate!')),
+          );
+        }
+      } else {
+        // Add blog post
+        await firestoreService.addBlogPost(
+          title,
+          content,
+          author,
+          selectedCategory!,
+          readTime,
+          image,
+        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Blog post herasil ditambahkan!')),
+          );
+        }
+      }
+
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error menyimpan post: $e')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,6 +280,14 @@ class _BlogPageState extends State<BlogPage> {
         iconTheme: const IconThemeData(color: Colors.white),
         backgroundColor: Colors.transparent,
         title: const Text('Blog', style: TextStyle(color: Colors.white)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add, color: Colors.white),
+            onPressed: () {
+              _showAddForm();
+            },
+          ),
+        ],
       ),
       // ============================ END ============================
 
@@ -159,16 +362,109 @@ class _BlogPageState extends State<BlogPage> {
                 ],
               ),
             ),
+
             // ============================ END ============================
 
             // ============================ Blog Posts List ============================
             Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: _blogPosts.length,
-                itemBuilder: (context, index) {
-                  final post = _blogPosts[index];
-                  return BlogCardBuild(post);
+              child: StreamBuilder<QuerySnapshot>(
+                stream: firestoreService.getBlogPosts(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  }
+
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const Center(
+                      child: Text(
+                        'No blog posts available',
+                        style: TextStyle(color: Colors.white, fontSize: 16),
+                      ),
+                    );
+                  }
+
+                  final blogPosts = snapshot.data!.docs;
+
+                  return ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: blogPosts.length,
+                    itemBuilder: (context, index) {
+                      final blogPostData = blogPosts[index].data() as Map<String, dynamic>?;
+                      final blogPostId = blogPosts[index].id;
+
+                      if (blogPostData != null) {
+                        String formatDate = '-';
+                        if (blogPostData['date'] != null) {
+                          try {
+                            // cek timestamp
+                            final timestamp = blogPostData['date'] as Timestamp;
+                            formatDate = DateFormat('dd, MMM yyyy').format(timestamp.toDate());
+                          } catch (e) {
+                            // jika tidak bisa didapatkan timestamp 
+                            formatDate = '-';
+                          }
+                        }
+
+                        final blogPost = {
+                          'id': blogPostId,
+                          'title': blogPostData['title'] ?? '',
+                          'content': blogPostData['content'] ?? '',
+                          'author': blogPostData['author'] ?? '',
+                          'category': blogPostData['category'] ?? '',
+                          'readTime': blogPostData['readTime'] ?? '',
+                          'image': blogPostData['image'] ?? '',
+                          'date': formatDate,
+                        };
+
+                        return BlogCardBuild(
+                          blogPost: blogPost,
+                          onEdit: () => _showAddForm(id: blogPostId),
+                          onDelete: () async {
+                            final confirm = await showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Confirm'),
+                                content: const Text('Apakah anda yakin ingin menghapus blog post ini?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context, false),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context, true),
+                                    child: const Text('Delete'),
+                                  ),
+                                ],
+                              ),
+                            );
+
+                            if (confirm == true) {
+                              try {
+                                await firestoreService.deleteBlogPost(blogPostId);
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Blog post berhasil dihapus!')),
+                                  );
+                                }
+                              } catch (e) {
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Error dalam menghapus blog post: $e')),
+                                  );
+                                }
+                              }
+                            }
+                          },
+                        );
+                      }
+
+                      return const SizedBox.shrink();
+                    },
+                  );
                 },
               ),
             ),
@@ -189,12 +485,24 @@ class _BlogPageState extends State<BlogPage> {
   // ============================ END ============================
 
   // ============================ Blog Card Builder ============================
-  Widget BlogCardBuild(Map<String, dynamic> post) {
+  Widget BlogCardBuild({
+    required Map<String, dynamic> blogPost,
+    VoidCallback? onEdit,
+    VoidCallback? onDelete,
+  }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: const Color.fromARGB(255, 28, 28, 28),
         borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.5),
+            spreadRadius: 1,
+            blurRadius: 5,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -203,7 +511,7 @@ class _BlogPageState extends State<BlogPage> {
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             child: Image.asset(
-              post['image'],
+              blogPost['image'],
               height: 180,
               width: double.infinity,
               fit: BoxFit.cover,
@@ -228,7 +536,7 @@ class _BlogPageState extends State<BlogPage> {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    post['category'],
+                    blogPost['category'],
                     style: const TextStyle(
                       color: Color(0xFF63CFC0),
                       fontSize: 12,
@@ -240,7 +548,7 @@ class _BlogPageState extends State<BlogPage> {
 
                 // ============================ Title ============================
                 Text(
-                  post['title'],
+                  blogPost['title'],
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -252,7 +560,7 @@ class _BlogPageState extends State<BlogPage> {
 
                 // ============================ content ============================
                 Text(
-                  post['content'],
+                  blogPost['content'],
                   style: TextStyle(
                     color: Colors.grey[400],
                     fontSize: 14,
@@ -273,7 +581,7 @@ class _BlogPageState extends State<BlogPage> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      post['author'],
+                      blogPost['author'],
                       style: TextStyle(color: Colors.grey[500], fontSize: 12),
                     ),
                     const SizedBox(width: 16),
@@ -284,14 +592,14 @@ class _BlogPageState extends State<BlogPage> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      post['date'],
+                      blogPost['date'],
                       style: TextStyle(color: Colors.grey[500], fontSize: 12),
                     ),
                     const SizedBox(width: 16),
                     Icon(Icons.access_time, size: 14, color: Colors.grey[500]),
                     const SizedBox(width: 4),
                     Text(
-                      post['readTime'],
+                      blogPost['readTime'],
                       style: TextStyle(color: Colors.grey[500], fontSize: 12),
                     ),
                   ],
@@ -300,33 +608,66 @@ class _BlogPageState extends State<BlogPage> {
                 // ============================ END ============================
                 const SizedBox(height: 12),
 
-                // ============================ Read More ============================
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Opening: ${post['title']}'),
-                          duration: const Duration(seconds: 2),
+                // ============================ Action Buttons ====================
+                Row(
+                  children: [
+                    // Read More Button
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Opening: ${blogPost['title']}'),
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF63CFC0),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF63CFC0),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        child: const Text(
+                          'Read More',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ),
-                    child: const Text(
-                      'Read More',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.w600,
+                    const SizedBox(width: 8),
+
+                    // Edit Button
+                    if (onEdit != null)
+                      IconButton(
+                        onPressed: onEdit,
+                        icon: const Icon(Icons.edit, color: Color(0xFF63CFC0), size: 20),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color.fromARGB(255, 28, 28, 28),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            side: BorderSide(color: const Color(0xFF63CFC0), width: 1),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
+
+                    // Delete Button
+                    if (onDelete != null)
+                      IconButton(
+                        onPressed: onDelete,
+                        icon: const Icon(Icons.delete, color: Colors.red, size: 20),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color.fromARGB(255, 28, 28, 28),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            side: const BorderSide(color: Colors.red, width: 1),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
                 // ============================ END ============================
               ],
