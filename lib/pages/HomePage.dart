@@ -1,5 +1,4 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 // ============================ PAGES ============================
 import 'AccountsPage.dart';
@@ -32,9 +31,9 @@ class _HomePageState extends State<HomePage> {
       endDrawer: Drawer(
         backgroundColor: Colors.black,
         child: ListView(
-          padding: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
           children: [
-            DrawerHeader(
+            const DrawerHeader(
               decoration: BoxDecoration(color: Colors.black),
               child: Text(
                 'ReTide',
@@ -45,6 +44,30 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
+            _drawerItem('Home', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const HomePage()),
+              );
+            }),
+            _drawerItem('Marketplace', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const MarketplacePage()),
+              );
+            }),
+            _drawerItem('Donations', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const DonationPage()),
+              );
+            }),
+            _drawerItem('Account', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AccountsPage()),
+              );
+            }),
           ],
         ),
       ),
@@ -191,7 +214,16 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-   // ============================ Impact Card Builder ============================
+  // ============================ Drawer helper ============================
+  Widget _drawerItem(String title, VoidCallback onTap) {
+    return ListTile(
+      title: Text(title, style: const TextStyle(color: Colors.white)),
+      onTap: onTap,
+    );
+  }
+  // ============================ END ============================
+
+  // ============================ Impact Card Builder ============================
   Widget ImpactCardBuilder({
     required IconData icon,
     required String value,

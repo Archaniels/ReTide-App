@@ -6,6 +6,7 @@ import 'BlogPage.dart';
 import 'HomePage.dart';
 import 'DonationPage.dart';
 import 'CartPage.dart';
+import 'MarketplacePage.dart';
 // ============================ END ============================
 
 class CartPage extends StatelessWidget {
@@ -29,9 +30,9 @@ class CartPage extends StatelessWidget {
       endDrawer: Drawer(
         backgroundColor: Colors.black,
         child: ListView(
-          padding: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
           children: [
-            DrawerHeader(
+            const DrawerHeader(
               decoration: BoxDecoration(color: Colors.black),
               child: Text(
                 'ReTide',
@@ -42,6 +43,30 @@ class CartPage extends StatelessWidget {
                 ),
               ),
             ),
+            _drawerItem('Home', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const HomePage()),
+              );
+            }),
+            _drawerItem('Marketplace', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const MarketplacePage()),
+              );
+            }),
+            _drawerItem('Donations', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const DonationPage()),
+              );
+            }),
+            _drawerItem('Account', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AccountsPage()),
+              );
+            }),
           ],
         ),
       ),
@@ -50,12 +75,14 @@ class CartPage extends StatelessWidget {
       backgroundColor: Colors.black,
       
       body: cartItems.isEmpty
+      // If Empty
           ? const Center(
               child: Text(
                 'Your cart is empty',
                 style: TextStyle(color: Colors.white, fontSize: 18),
               ),
             )
+            // If NOT Empty
           : ListView.builder(
               itemCount: cartItems.length,
               itemBuilder: (context, index) {
@@ -77,7 +104,16 @@ class CartPage extends StatelessWidget {
                   ),
                 );
               },
-            ),      
+            ),
     );
   }
+
+  // ============================ Drawer helper ============================
+  Widget _drawerItem(String title, VoidCallback onTap) {
+    return ListTile(
+      title: Text(title, style: const TextStyle(color: Colors.white)),
+      onTap: onTap,
+    );
+  }
+  // ============================ END ============================
 }

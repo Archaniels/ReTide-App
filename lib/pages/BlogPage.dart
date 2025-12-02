@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 // ============================ FIREBASE ============================
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:retide_app/firebase_options.dart';
-import 'package:retide_app/firestore_service.dart';
+import 'package:retide_app/services/firebase_options.dart';
+import 'package:retide_app/services/firestore_service.dart';
 // ============================ END ============================
 // ============================ PAGES ============================
 import 'AccountsPage.dart';

@@ -1,4 +1,12 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+// ============================ PAGES ============================
+import 'AccountsPage.dart';
+import 'BlogPage.dart';
+import 'MarketplacePage.dart';
+import 'DonationPage.dart';
+import 'HomePage.dart';
+// ============================ END ============================
 
 class DonationPage extends StatefulWidget {
   const DonationPage({super.key});
@@ -48,8 +56,8 @@ class _DonationPageState extends State<DonationPage> {
         backgroundColor: Colors.black,
         child: ListView(
           padding: const EdgeInsets.all(16.0),
-          children: const [
-            DrawerHeader(
+          children: [
+            const DrawerHeader(
               decoration: BoxDecoration(color: Colors.black),
               child: Text(
                 'ReTide',
@@ -60,6 +68,30 @@ class _DonationPageState extends State<DonationPage> {
                 ),
               ),
             ),
+            _drawerItem('Home', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const HomePage()),
+              );
+            }),
+            _drawerItem('Marketplace', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const MarketplacePage()),
+              );
+            }),
+            _drawerItem('Donations', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const DonationPage()),
+              );
+            }),
+            _drawerItem('Account', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AccountsPage()),
+              );
+            }),
           ],
         ),
       ),
@@ -342,6 +374,15 @@ class _DonationPageState extends State<DonationPage> {
       ),
     );
   }
+
+  // ============================ Drawer helper ============================
+  Widget _drawerItem(String title, VoidCallback onTap) {
+    return ListTile(
+      title: Text(title, style: const TextStyle(color: Colors.white)),
+      onTap: onTap,
+    );
+  }
+  // ============================ END ============================
 
   Widget _buildRadioOption(String label) {
     return Expanded(
