@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:retide_app/services/firebase_options.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 // ============================ PAGES ============================
 import 'pages/LoginPage.dart';
 import 'pages/RegisterPage.dart';
@@ -113,63 +114,144 @@ class _MyHomePageState extends State<MyHomePage> {
 
           // ============================ Welcome Text ============================
           Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Welcome to ReTide',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 32.0),
+                    child: Image.asset("assets/images/home.png"),
                   ),
-                ),
-                SizedBox(height: 16),
-                // ============================ END ============================
-
-                // ============================ Motto ============================
-                Text(
-                  'Fuel the Mission. Empower the Impact.',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
-                ),
-                const SizedBox(height: 32.0),
-                // ============================ END ============================
-
-                // ============================ Call To Action ============================
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const LoginPage(),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                    child: Text(
+                      "Fuel the Mission. Empower the Impact.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 28.0,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
                       ),
-                    );
-                  },
-
-                  icon: const Icon(Icons.arrow_forward, color: Colors.black),
-                  label: const Text(
-                    "Start",
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
                     ),
                   ),
-
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 14,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+                  SizedBox(height: 15.0),
+                  Text(
+                    "Selamatkan lautan kita, hanya dengan sentuhan jari.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 15.0, color: Colors.white),
+                  ),
+                  SizedBox(height: 25.0),
+                  InkWell(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (BuildContext context) {
+                            return LoginPage();
+                          },
+                        ),
+                      );
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      height: ScreenUtil().setHeight(50.0),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8.0),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Color.fromRGBO(169, 176, 185, 0.42),
+                            spreadRadius: 0,
+                            blurRadius: 8,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Text(
+                          "Sign In",
+                          style: GoogleFonts.roboto(
+                            color: Color.fromRGBO(169, 176, 185, 1.0),
+                            fontSize: 18.0,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-                // ============================ END ============================
-              ],
+                  SizedBox(height: 10.0),
+                  InkWell(
+                    child: Text('Create an Account'),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (BuildContext context) {
+                            return RegisterPage();
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
+            // child: Column(
+            //   mainAxisSize: MainAxisSize.min,
+            //   children: [
+            //     Text(
+            //       'Welcome to ReTide',
+            //       style: TextStyle(
+            //         color: Colors.white,
+            //         fontSize: 28,
+            //         fontWeight: FontWeight.bold,
+            //       ),
+            //     ),
+            //     SizedBox(height: 16),
+            //     // ============================ END ============================
+
+            //     // ============================ Motto ============================
+            //     Text(
+            //       'Fuel the Mission. Empower the Impact.',
+            //       style: TextStyle(color: Colors.white, fontSize: 18),
+            //     ),
+            //     const SizedBox(height: 32.0),
+            //     // ============================ END ============================
+
+            //     // ============================ Call To Action ============================
+            //     ElevatedButton.icon(
+            //       onPressed: () {
+            //         Navigator.push(
+            //           context,
+            //           MaterialPageRoute(
+            //             builder: (context) => const LoginPage(),
+            //           ),
+            //         );
+            //       },
+
+            //       icon: const Icon(Icons.arrow_forward, color: Colors.black),
+            //       label: const Text(
+            //         "Start",
+            //         style: TextStyle(
+            //           color: Colors.black,
+            //           fontSize: 18,
+            //           fontWeight: FontWeight.w600,
+            //         ),
+            //       ),
+
+            //       style: ElevatedButton.styleFrom(
+            //         backgroundColor: Colors.white,
+            //         padding: const EdgeInsets.symmetric(
+            //           horizontal: 24,
+            //           vertical: 14,
+            //         ),
+            //         shape: RoundedRectangleBorder(
+            //           borderRadius: BorderRadius.circular(30),
+            //         ),
+            //       ),
+            //     ),
+            //     // ============================ END ============================
+            //   ],
+            // ),
           ),
         ],
       ),

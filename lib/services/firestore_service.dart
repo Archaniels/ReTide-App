@@ -54,37 +54,20 @@ class BlogPost {
 }
 
 class FirestoreService {
-  // final CollectionReference users = FirebaseFirestore.instance.collection(
-  //   'users',
-  // );
   final CollectionReference blogPosts = FirebaseFirestore.instance.collection(
     'blogPosts',
   );
 
-  // // User CRUD operations
-  // // CREATE
-  // Future<void> addUser(String name, int age) {
-  //   return users.add({'name': name, 'age': age});
-  // }
-
-  // // READ (real-time)
-  // Stream<QuerySnapshot> getUsers() {
-  //   return users.snapshots();
-  // }
-
-  // // UPDATE
-  // Future<void> updateUser(String id, String name, int age) {
-  //   return users.doc(id).update({'name': name, 'age': age});
-  // }
-
-  // // DELETE
-  // Future<void> deleteUser(String id) {
-  //   return users.doc(id).delete();
-  // }
-
   // Blog Post CRUD
   // CREATE
-  Future<void> addBlogPost(String title, String content, String author, String category, String readTime, String image) {
+  Future<void> addBlogPost(
+    String title,
+    String content,
+    String author,
+    String category,
+    String readTime,
+    String image,
+  ) {
     return blogPosts.add({
       'title': title,
       'content': content,
@@ -98,20 +81,30 @@ class FirestoreService {
 
   // READ - Get all blog posts
   Stream<QuerySnapshot> getBlogPosts() {
-    return blogPosts.orderBy('date', descending: true).snapshots();
+    return blogPosts.snapshots();
   }
 
   // READ - Get 1 blog post
   Future<BlogPost?> getBlogPost(String id) async {
     final doc = await blogPosts.doc(id).get();
     if (doc.exists) {
-      return BlogPost.fromFirestore(doc as DocumentSnapshot<Map<String, dynamic>>);
+      return BlogPost.fromFirestore(
+        doc as DocumentSnapshot<Map<String, dynamic>>,
+      );
     }
     return null;
   }
 
   // UPDATE - blog post
-  Future<void> updateBlogPost(String id, String title, String content, String author, String category, String readTime, String image) {
+  Future<void> updateBlogPost(
+    String id,
+    String title,
+    String content,
+    String author,
+    String category,
+    String readTime,
+    String image,
+  ) {
     return blogPosts.doc(id).update({
       'title': title,
       'content': content,
@@ -119,7 +112,7 @@ class FirestoreService {
       'category': category,
       'readTime': readTime,
       'image': image,
-      'date': Timestamp.now(), // Update the date when modified
+      'date': Timestamp.now(),
     });
   }
 
