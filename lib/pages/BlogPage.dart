@@ -20,7 +20,7 @@ class BlogPage extends StatefulWidget {
 class _BlogPageState extends State<BlogPage> {
   String? selectedCategory;
 
-  final List<String> _categories = [
+  final List<String> _kategoriPost = [
     'Environment',
     'Impact',
     'Education',
@@ -43,7 +43,6 @@ class _BlogPageState extends State<BlogPage> {
     if (id != null) {
       _loadBlogPostForEditing(id);
     } else {
-      // Clear controllers untuk post baru
       titleController.clear();
       contentController.clear();
       authorController.clear();
@@ -102,20 +101,19 @@ class _BlogPageState extends State<BlogPage> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
-              value: selectedCategory,
               initialValue: selectedCategory,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
+              validator: (initialValue) {
+                if (initialValue == null || initialValue.isEmpty) {
                   return 'Please select a category';
                 }
                 return null;
               },
-              items: _categories.map((category) {
+              items: _kategoriPost.map((category) {
                 return DropdownMenuItem(value: category, child: Text(category));
               }).toList(),
-              onChanged: (value) {
+              onChanged: (initialValue) {
                 setState(() {
-                  selectedCategory = value;
+                  selectedCategory = initialValue;
                 });
               },
               decoration: const InputDecoration(
@@ -229,7 +227,6 @@ class _BlogPageState extends State<BlogPage> {
 
     try {
       if (_editingBlogPostId != null) {
-        // Update blog post
         await firestoreService.updateBlogPost(
           _editingBlogPostId!,
           title,
@@ -245,7 +242,6 @@ class _BlogPageState extends State<BlogPage> {
           );
         }
       } else {
-        // Add blog post
         await firestoreService.addBlogPost(
           title,
           content,
