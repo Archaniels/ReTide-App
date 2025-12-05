@@ -131,7 +131,10 @@ class _BlogPageState extends State<BlogPage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF63CFC0),
                 foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 12,
+                ),
               ),
               child: Text(_editingBlogPostId != null ? "Update" : "Add"),
             ),
@@ -263,9 +266,9 @@ class _BlogPageState extends State<BlogPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error menyimpan post: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error menyimpan post: $e')));
       }
     }
   }
@@ -393,7 +396,8 @@ class _BlogPageState extends State<BlogPage> {
                     padding: const EdgeInsets.all(16),
                     itemCount: blogPosts.length,
                     itemBuilder: (context, index) {
-                      final blogPostData = blogPosts[index].data() as Map<String, dynamic>?;
+                      final blogPostData =
+                          blogPosts[index].data() as Map<String, dynamic>?;
                       final blogPostId = blogPosts[index].id;
 
                       if (blogPostData != null) {
@@ -402,9 +406,11 @@ class _BlogPageState extends State<BlogPage> {
                           try {
                             // cek timestamp
                             final timestamp = blogPostData['date'] as Timestamp;
-                            formatDate = DateFormat('dd, MMM yyyy').format(timestamp.toDate());
+                            formatDate = DateFormat(
+                              'dd, MMM yyyy',
+                            ).format(timestamp.toDate());
                           } catch (e) {
-                            // jika tidak bisa didapatkan timestamp 
+                            // jika tidak bisa didapatkan timestamp
                             formatDate = '-';
                           }
                         }
@@ -428,14 +434,18 @@ class _BlogPageState extends State<BlogPage> {
                               context: context,
                               builder: (context) => AlertDialog(
                                 title: const Text('Confirm'),
-                                content: const Text('Apakah anda yakin ingin menghapus blog post ini?'),
+                                content: const Text(
+                                  'Apakah anda yakin ingin menghapus blog post ini?',
+                                ),
                                 actions: [
                                   TextButton(
-                                    onPressed: () => Navigator.pop(context, false),
+                                    onPressed: () =>
+                                        Navigator.pop(context, false),
                                     child: const Text('Cancel'),
                                   ),
                                   TextButton(
-                                    onPressed: () => Navigator.pop(context, true),
+                                    onPressed: () =>
+                                        Navigator.pop(context, true),
                                     child: const Text('Delete'),
                                   ),
                                 ],
@@ -444,16 +454,26 @@ class _BlogPageState extends State<BlogPage> {
 
                             if (confirm == true) {
                               try {
-                                await firestoreService.deleteBlogPost(blogPostId);
+                                await firestoreService.deleteBlogPost(
+                                  blogPostId,
+                                );
                                 if (mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Blog post berhasil dihapus!')),
+                                    const SnackBar(
+                                      content: Text(
+                                        'Blog post berhasil dihapus!',
+                                      ),
+                                    ),
                                   );
                                 }
                               } catch (e) {
                                 if (mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Error dalam menghapus blog post: $e')),
+                                    SnackBar(
+                                      content: Text(
+                                        'Error dalam menghapus blog post: $e',
+                                      ),
+                                    ),
                                   );
                                 }
                               }
@@ -644,12 +664,24 @@ class _BlogPageState extends State<BlogPage> {
                     if (onEdit != null)
                       IconButton(
                         onPressed: onEdit,
-                        icon: const Icon(Icons.edit, color: Color(0xFF63CFC0), size: 20),
+                        icon: const Icon(
+                          Icons.edit,
+                          color: Color(0xFF63CFC0),
+                          size: 20,
+                        ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(255, 28, 28, 28),
+                          backgroundColor: const Color.fromARGB(
+                            255,
+                            28,
+                            28,
+                            28,
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
-                            side: BorderSide(color: const Color(0xFF63CFC0), width: 1),
+                            side: BorderSide(
+                              color: const Color(0xFF63CFC0),
+                              width: 1,
+                            ),
                           ),
                         ),
                       ),
@@ -658,9 +690,18 @@ class _BlogPageState extends State<BlogPage> {
                     if (onDelete != null)
                       IconButton(
                         onPressed: onDelete,
-                        icon: const Icon(Icons.delete, color: Colors.red, size: 20),
+                        icon: const Icon(
+                          Icons.delete,
+                          color: Colors.red,
+                          size: 20,
+                        ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(255, 28, 28, 28),
+                          backgroundColor: const Color.fromARGB(
+                            255,
+                            28,
+                            28,
+                            28,
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                             side: const BorderSide(color: Colors.red, width: 1),
