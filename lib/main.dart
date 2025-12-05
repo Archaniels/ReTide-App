@@ -25,19 +25,27 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'ReTide',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Color(0xFF63CFC0)),
-        textTheme: GoogleFonts.poppinsTextTheme(),
-        scaffoldBackgroundColor: Colors.black,
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      home: const MyHomePage(),
+    return ScreenUtilInit(
+      designSize: const Size(390, 844), // sesuaikan UI design kamu
+      minTextAdapt: true,
+      builder: (_, child) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'ReTide',
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(seedColor: Color(0xFF63CFC0)),
+            textTheme: GoogleFonts.poppinsTextTheme(),
+            scaffoldBackgroundColor: Colors.black,
+            iconTheme: const IconThemeData(color: Colors.white),
+          ),
+          home: child,
+        );
+      },
+      child: const MyHomePage(),
     );
   }
 }
+
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});

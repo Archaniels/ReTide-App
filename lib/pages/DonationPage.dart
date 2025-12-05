@@ -20,8 +20,18 @@ class _DonationPageState extends State<DonationPage> {
   String? selectedAmount;
   String? selectedFrequency = 'Monthly';
 
+  final Map<String, String> donationDescriptions = {
+    "Cost of education":
+        "Mendukung biaya pendidikan bagi anak-anak dan pemuda untuk masa depan yang lebih cerah.",
+    "Environmental protection":
+        "Berfokus pada perlindungan ekosistem, mencegah kerusakan lingkungan, dan menjaga keseimbangan alam.",
+    "Ocean cleanup":
+        "Mendanai kegiatan pembersihan lautan, pengumpulan sampah plastik, dan pelestarian habitat laut.",
+  };
+
   final customAmountController = TextEditingController();
   final FocusNode customAmountFocus = FocusNode();
+  String? amountErrorText;
 
   @override
   void initState() {
@@ -100,7 +110,7 @@ class _DonationPageState extends State<DonationPage> {
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: const AssetImage('assets/images/donation/donationbg.jpg'),
+                image: const AssetImage('assets/images/donationbg.jpg'),
                 fit: BoxFit.cover,
               ),
             ),
@@ -132,10 +142,28 @@ class _DonationPageState extends State<DonationPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Choose a donation type',
-                          style: TextStyle(color: Colors.white),
+                        Row(
+                          children: [
+                            const Text(
+                              'Choose a donation type',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            const SizedBox(width: 6),
+
+                            // ICON INFO
+                            GestureDetector(
+                              onTap: () {
+                                _showDonationInfo(context);
+                              },
+                              child: Icon(
+                                Icons.info_outline,
+                                color: Colors.white70,
+                                size: 18,
+                              ),
+                            ),
+                          ],
                         ),
+
                         const SizedBox(height: 10),
 
                         DropdownButtonFormField<String>(
@@ -267,33 +295,70 @@ class _DonationPageState extends State<DonationPage> {
 
                         const SizedBox(height: 16),
 
-                        TextField(
-                          controller: customAmountController,
-                          focusNode: customAmountFocus,
-                          keyboardType: TextInputType.number,
-                          style: const TextStyle(color: Colors.white),
-                          decoration: InputDecoration(
-                            labelText: 'Enter a custom amount',
-                            labelStyle: const TextStyle(color: Colors.white70),
-                            filled: true,
-                            fillColor: Colors.black38,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 14,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(
-                                color: Colors.white30,
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            TextField(
+                              controller: customAmountController,
+                              focusNode: customAmountFocus,
+                              keyboardType: TextInputType.number,
+                              style: const TextStyle(color: Colors.white),
+                              onChanged: (value) {
+                                setState(() {
+                                  if (value.isEmpty) {
+                                    amountErrorText = null;
+                                    return;
+                                  }
+
+                                  final amount = int.tryParse(value) ?? 0;
+
+                                  if (amount < 5000) {
+                                    amountErrorText =
+                                        "Minimum donation is Rp5.000";
+                                  } else {
+                                    amountErrorText = null;
+                                    selectedAmount = value;
+                                  }
+                                });
+                              },
+                              decoration: InputDecoration(
+                                labelText: 'Enter a custom amount',
+                                labelStyle: const TextStyle(
+                                  color: Colors.white70,
+                                ),
+                                filled: true,
+                                fillColor: Colors.black38,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 14,
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                    color: Colors.white30,
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                    color: Colors.tealAccent,
+                                  ),
+                                ),
                               ),
                             ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(
-                                color: Colors.tealAccent,
+
+                            if (amountErrorText != null) ...[
+                              const SizedBox(height: 6),
+                              Text(
+                                amountErrorText!,
+                                style: const TextStyle(
+                                  color: Colors.redAccent,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
-                            ),
-                          ),
+                            ],
+                          ],
                         ),
 
                         const SizedBox(height: 26),
@@ -351,7 +416,35 @@ class _DonationPageState extends State<DonationPage> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
-                                onPressed: () {},
+                                onPressed: () {
+                                  final amount =
+                                      int.tryParse(
+                                        customAmountController.text,
+                                      ) ??
+                                      0;
+
+                                  // Jika user mengetik custom amount tetapi kurang dari 5000
+                                  if (customAmountController.text.isNotEmpty &&
+                                      amount < 5000) {
+                                    setState(() {
+                                      amountErrorText =
+                                          "Minimum donation is Rp5.000";
+                                    });
+                                    return; // Stop, jangan lanjut checkout
+                                  }
+
+                                  // Jika user pilih preset Rp25k / Rp50k / Rp100k → aman
+                                  if (selectedAmount != null) {
+                                    print(
+                                      "Checkout with preset amount: $selectedAmount",
+                                    );
+                                    return;
+                                  }
+
+                                  // Jika semua aman dan valid
+                                  print("Checkout with custom amount: $amount");
+                                },
+
                                 child: const Text(
                                   'Checkout',
                                   style: TextStyle(
@@ -431,6 +524,78 @@ class _DonationPageState extends State<DonationPage> {
           ),
         ),
       ),
+    );
+  }
+
+  void _showDonationInfo(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: Colors.black87,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Donation Type Information",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // List informasi
+                ...donationDescriptions.entries.map((entry) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          entry.key,
+                          style: const TextStyle(
+                            color: Colors.tealAccent,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          entry.value,
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+
+                const SizedBox(height: 10),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text(
+                      "Close",
+                      style: TextStyle(color: Colors.tealAccent),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
