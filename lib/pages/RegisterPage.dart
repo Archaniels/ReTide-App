@@ -11,15 +11,16 @@ class RegisterPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color.fromARGB(255, 17, 17, 17),
       // ============================ AppBar ============================
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
-        backgroundColor: Colors.transparent,
+        backgroundColor: Color.fromARGB(255, 17, 17, 17),
         title: Text('ReTide', style: TextStyle(color: Colors.white)),
       ),
-      // ============================ END ============================
 
+      // ============================ END ============================
       body: Align(
         alignment: Alignment.center,
 
@@ -134,8 +135,8 @@ class RegisterPage extends StatelessWidget {
                 ),
               ),
             ),
-            // ============================ END ============================
 
+            // ============================ END ============================
             const SizedBox(height: 16),
 
             // ============================ Login Button ============================

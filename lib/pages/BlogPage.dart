@@ -272,7 +272,7 @@ class _BlogPageState extends State<BlogPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Color.fromARGB(255, 17, 17, 17),
       // ============================ AppBar ============================
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -292,7 +292,7 @@ class _BlogPageState extends State<BlogPage> {
 
       // ============================ Hamburger Menu ============================
       endDrawer: Drawer(
-        backgroundColor: Colors.black,
+        backgroundColor: Color.fromARGB(255, 17, 17, 17),
         child: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [

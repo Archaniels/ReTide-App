@@ -156,11 +156,12 @@ class _CartPageState extends State<CartPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color.fromARGB(255, 17, 17, 17),
       // ============================ AppBar ============================
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
-        backgroundColor: Colors.transparent,
+        backgroundColor: Color.fromARGB(255, 17, 17, 17),
         elevation: 0,
         title: const Text(
           'Checkout',
@@ -179,12 +180,12 @@ class _CartPageState extends State<CartPage> {
 
       // ============================ Hamburger Menu ============================
       endDrawer: Drawer(
-        backgroundColor: Colors.black,
+        backgroundColor: Color.fromARGB(255, 17, 17, 17),
         child: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
             const DrawerHeader(
-              decoration: BoxDecoration(color: Colors.black),
+              decoration: BoxDecoration(color: Color.fromARGB(255, 17, 17, 17)),
               child: Text(
                 'ReTide',
                 style: TextStyle(
@@ -223,8 +224,6 @@ class _CartPageState extends State<CartPage> {
       ),
 
       // ============================ END ============================
-      backgroundColor: Colors.black,
-
       body: Column(
         children: [
           const SizedBox(height: 100),

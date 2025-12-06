@@ -18,11 +18,12 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color.fromARGB(255, 17, 17, 17),
       // ============================ AppBar ============================
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
-        backgroundColor: Colors.transparent,
+        backgroundColor: Color.fromARGB(255, 17, 17, 17),
         title: Text('ReTide', style: TextStyle(color: Colors.white)),
       ),
       // ============================ END ============================
@@ -95,8 +96,8 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-          // ============================ END ============================
 
+          // ============================ END ============================
           const SizedBox(height: 24),
 
           // ============================ Feature Widget ============================
@@ -105,7 +106,7 @@ class _HomePageState extends State<HomePage> {
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 16.0),
               decoration: BoxDecoration(
-                color: Colors.black,
+                color: Color.fromARGB(255, 17, 17, 17),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
@@ -141,74 +142,73 @@ class _HomePageState extends State<HomePage> {
           ),
 
           // ============================ END ============================
-          
           const SizedBox(height: 24),
 
-        // ============================ Impact Dashboard ============================
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Your Impact',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
+          // ============================ Impact Dashboard ============================
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Your Impact',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ImpactCardBuilder(
+                        icon: Icons.eco,
+                        value: '24',
+                        label: 'Items Recycled',
+                        color: Color(0xFF63CFC0),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ImpactCardBuilder(
-                          icon: Icons.eco,
-                          value: '24',
-                          label: 'Items Recycled',
-                          color: Color(0xFF63CFC0),
-                        ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ImpactCardBuilder(
+                        icon: Icons.water_drop,
+                        value: '156L',
+                        label: 'Water Saved',
+                        color: Color(0xFF4A9FE8),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ImpactCardBuilder(
-                          icon: Icons.water_drop,
-                          value: '156L',
-                          label: 'Water Saved',
-                          color: Color(0xFF4A9FE8),
-                        ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ImpactCardBuilder(
+                        icon: Icons.co2,
+                        value: '12kg',
+                        label: 'CO₂ Reduced',
+                        color: Color(0xFF7CB342),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ImpactCardBuilder(
-                          icon: Icons.co2,
-                          value: '12kg',
-                          label: 'CO₂ Reduced',
-                          color: Color(0xFF7CB342),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
+                    ),
+                    const SizedBox(width: 12),
 
-                      Expanded(
-                        child: ImpactCardBuilder(
-                          icon: Icons.volunteer_activism,
-                          value: 'Rp 500k',
-                          label: 'Donated',
-                          color: Color(0xFFFF6B6B),
-                        ),
+                    Expanded(
+                      child: ImpactCardBuilder(
+                        icon: Icons.volunteer_activism,
+                        value: 'Rp 500k',
+                        label: 'Donated',
+                        color: Color(0xFFFF6B6B),
                       ),
+                    ),
 
-                      const SizedBox(width: 12),
-                    ],
-                  ),
-                ],
-              ),
+                    const SizedBox(width: 12),
+                  ],
+                ),
+              ],
             ),
-            // ============================ END ============================
+          ),
+          // ============================ END ============================
         ],
       ),
     );
@@ -250,13 +250,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.grey[400],
-              fontSize: 12,
-            ),
-          ),
+          Text(label, style: TextStyle(color: Colors.grey[400], fontSize: 12)),
         ],
       ),
     );
@@ -266,11 +260,10 @@ class _HomePageState extends State<HomePage> {
   // ============================ Reusable Feature Widget ============================
   Widget FeatureButton(
     BuildContext context, {
-      required IconData icon,
-      required String label,
-      required Widget page,
-    }
-  ){
+    required IconData icon,
+    required String label,
+    required Widget page,
+  }) {
     return GestureDetector(
       onTap: () {
         Navigator.push(context, MaterialPageRoute(builder: (context) => page));
@@ -288,7 +281,11 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(height: 8),
           Text(
             label,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white),
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
           ),
         ],
       ),

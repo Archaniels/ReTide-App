@@ -39,11 +39,12 @@ class _MarketplacePageState extends State<MarketplacePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color.fromARGB(255, 17, 17, 17),
       extendBodyBehindAppBar: true,
       // ============================ AppBar ============================
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
-        backgroundColor: Colors.transparent,
+        backgroundColor: Color.fromARGB(255, 17, 17, 17),
         title: const Text('Marketplace', style: TextStyle(color: Colors.white)),
         actions: [
           IconButton(
@@ -58,7 +59,7 @@ class _MarketplacePageState extends State<MarketplacePage> {
 
       // ============================ Drawer ============================
       endDrawer: Drawer(
-        backgroundColor: Colors.black,
+        backgroundColor: Color.fromARGB(255, 17, 17, 17),
         child: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
@@ -134,7 +135,7 @@ class _MarketplacePageState extends State<MarketplacePage> {
 
           return SafeArea(
             child: Container(
-              color: Colors.black,
+              color: Color.fromARGB(255, 17, 17, 17),
               child: Column(
                 children: [
                   // ============================ Header ============================
