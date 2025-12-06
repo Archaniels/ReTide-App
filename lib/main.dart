@@ -46,7 +46,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
 
@@ -64,28 +63,6 @@ class _MyHomePageState extends State<MyHomePage> {
         iconTheme: const IconThemeData(color: Colors.white),
         backgroundColor: Colors.transparent,
         title: Text('ReTide', style: TextStyle(color: Colors.white)),
-      ),
-      // ============================ END ============================
-
-      // ============================ Hamburger Menu ============================
-      endDrawer: Drawer(
-        backgroundColor: Colors.black,
-        child: ListView(
-          padding: EdgeInsets.all(16.0),
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(color: Colors.black),
-              child: Text(
-                'ReTide',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
 
       // ============================ END ============================
@@ -127,10 +104,13 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 32.0),
-                    child: Image.asset("assets/images/home.png"),
-                  ),
+                  // Padding(
+                  //   padding: const EdgeInsets.only(top: 16.0),
+                  //   child: Image.asset(
+                  //     'assets/ReTide_Logo.png',
+                  //     fit: BoxFit.contain,
+                  //   ),
+                  // ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 32.0),
                     child: Text(
@@ -161,25 +141,17 @@ class _MyHomePageState extends State<MyHomePage> {
                       );
                     },
                     child: Container(
-                      width: double.infinity,
+                      width: ScreenUtil().setWidth(300.0),
                       height: ScreenUtil().setHeight(50.0),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Colors.black,
                         borderRadius: BorderRadius.circular(8.0),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Color.fromRGBO(169, 176, 185, 0.42),
-                            spreadRadius: 0,
-                            blurRadius: 8,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
                       ),
                       child: Center(
                         child: Text(
                           "Sign In",
-                          style: GoogleFonts.roboto(
-                            color: Color.fromRGBO(169, 176, 185, 1.0),
+                          style: TextStyle(
+                            color: Color(0xFF63CFC0),
                             fontSize: 18.0,
                             fontWeight: FontWeight.w600,
                           ),
@@ -189,7 +161,14 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                   SizedBox(height: 10.0),
                   InkWell(
-                    child: Text('Create an Account'),
+                    child: Text(
+                      'Create an Account',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15.0,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(

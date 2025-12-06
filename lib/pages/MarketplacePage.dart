@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:retide_app/services/firebase_options.dart';
 import 'package:retide_app/services/firestore_service.dart';
 // ============================ END ============================
+
 // ============================ PAGES ============================
 import 'AccountsPage.dart';
 import 'BlogPage.dart';
@@ -35,96 +36,6 @@ class _MarketplacePageState extends State<MarketplacePage> {
   ];
   // ============================ END ============================
 
-  // ============================ Product List (dengan kondisi) ============================
-  final List<Map<String, dynamic>> _allProducts = [
-    {
-      'name': 'Eco Tote Bag',
-      'price': 150000,
-      'image': 'assets/images/website_Webstore_r1.jpg',
-      'condition': 'Baru',
-      'description': 'Tas ramah lingkungan dari bahan daur ulang',
-    },
-    {
-      'name': 'Reusable Bottle',
-      'price': 100000,
-      'image':
-          'assets/images/Dangers-Of-Not-Cleaning-Your-Reusable-Water-Bottlejpg.webp',
-      'condition': 'Baru',
-      'description': 'Botol minum stainless steel premium',
-    },
-    {
-      'name': 'Bamboo Toothbrush',
-      'price': 20000,
-      'image': 'assets/images/bamboo-toothbrushes-for-better-oral-health.png',
-      'condition': 'Baru',
-      'description': 'Sikat gigi bambu biodegradable',
-    },
-    {
-      'name': 'Organic Cotton Shirt',
-      'price': 30000,
-      'image':
-          'assets/images/RECOVER_OG100_ORGANICSHORTSLEEVETSHIRT_BLACK_FRONT_2048x2048.webp',
-      'condition': 'Bekas Layak',
-      'description': 'Kaos katun organik kondisi sangat baik',
-    },
-    {
-      'name': 'Recycled Notebook',
-      'price': 30000,
-      'image': 'assets/images/notebook-cardboard_paper.webp',
-      'condition': 'Daur Ulang',
-      'description': 'Buku catatan dari kertas daur ulang',
-    },
-    {
-      'name': 'Sustainable Sneakers',
-      'price': 555000,
-      'image': 'assets/images/adidas_parley_6.webp',
-      'condition': 'Baru',
-      'description': 'Sepatu dari sampah plastik laut',
-    },
-    {
-      'name': 'Upcycled Denim Jacket',
-      'price': 250000,
-      'image': 'assets/images/IMG_20230320_143001_520.jpg',
-      'condition': 'Daur Ulang',
-      'description': 'Jaket denim dari pakaian bekas',
-    },
-    {
-      'name': 'Glass Food Container',
-      'price': 75000,
-      'image':
-          'assets/images/93594_KSP_Divided_Glass_600ml_Storage_Container__Clear_White.webp',
-      'condition': 'Bekas Layak',
-      'description': 'Wadah makanan kaca, kondisi mulus',
-    },
-  ];
-  // ============================ END ============================
-
-  // ============================ Get Filtered Products ============================
-  List<Map<String, dynamic>> get _filteredProducts {
-    if (_selectedCondition == 'Semua') {
-      return _allProducts;
-    }
-    return _allProducts
-        .where((product) => product['condition'] == _selectedCondition)
-        .toList();
-  }
-  // ============================ END ============================
-
-  // ============================ Get Condition Color ============================
-  Color _getConditionColor(String condition) {
-    switch (condition) {
-      case 'Baru':
-        return const Color(0xFF4CAF50); // Hijau
-      case 'Bekas Layak':
-        return const Color(0xFFFF9800); // Oranye
-      case 'Daur Ulang':
-        return const Color(0xFF2196F3); // Biru
-      default:
-        return Colors.grey;
-    }
-  }
-  // ============================ END ============================
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -134,6 +45,14 @@ class _MarketplacePageState extends State<MarketplacePage> {
         iconTheme: const IconThemeData(color: Colors.white),
         backgroundColor: Colors.transparent,
         title: const Text('Marketplace', style: TextStyle(color: Colors.white)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add, color: Colors.white),
+            onPressed: () {
+              _showAddProductModal(context);
+            },
+          ),
+        ],
       ),
       // ============================ END ============================
 
@@ -183,22 +102,37 @@ class _MarketplacePageState extends State<MarketplacePage> {
       ),
 
       // ============================ END ============================
-      body: 
-      // StreamBuilder(
-      //   stream: firestoreService.getUsers(),
-      //   builder: (context, snapshot) {
-      //     if (snapshot.connectionState == ConnectionState.waiting) {
-      //       return const Center(child: CircularProgressIndicator());
-      //     }
-      //     if (snapshot.hasError) {
-      //       return const Center(child: Text('Terjadi kesalahan'));
-      //     }
-      //     final docs = snapshot.data?.docs ?? [];
-      //     if (docs.isEmpty) {
-      //       return const Center(child: Text('Tidak ada data'));
-      //     }
+      body: StreamBuilder<QuerySnapshot>(
+        stream: firestoreService.getProducts(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return const Center(child: Text('Terjadi kesalahan'));
+          }
 
-          SafeArea(
+          final docs = snapshot.data?.docs ?? [];
+
+          // Filter products based on selected condition
+          List<MarketplaceProducts> allProducts = docs
+              .map(
+                (doc) => MarketplaceProducts.fromFirestore(
+                  doc as DocumentSnapshot<Map<String, dynamic>>,
+                ),
+              )
+              .toList();
+
+          List<MarketplaceProducts> filteredProducts = allProducts;
+          if (_selectedCondition != 'Semua') {
+            filteredProducts = allProducts
+                .where(
+                  (product) => product.productCategory == _selectedCondition,
+                )
+                .toList();
+          }
+
+          return SafeArea(
             child: Container(
               color: Colors.black,
               child: Column(
@@ -319,29 +253,10 @@ class _MarketplacePageState extends State<MarketplacePage> {
                   ),
 
                   // ============================ END ============================
-                  const SizedBox(height: 16),
-
-                  // ============================ Product Count ============================
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          '${_filteredProducts.length} Produk Tersedia',
-                          style: TextStyle(
-                            color: Colors.grey[400],
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // ============================ END ============================
 
                   // ============================ Product Grid ============================
                   Expanded(
-                    child: _filteredProducts.isEmpty
+                    child: filteredProducts.isEmpty
                         ? Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -367,7 +282,7 @@ class _MarketplacePageState extends State<MarketplacePage> {
                               horizontal: 12.0,
                             ),
                             child: GridView.builder(
-                              itemCount: _filteredProducts.length,
+                              itemCount: filteredProducts.length,
                               gridDelegate:
                                   const SliverGridDelegateWithFixedCrossAxisCount(
                                     crossAxisCount: 2,
@@ -376,7 +291,7 @@ class _MarketplacePageState extends State<MarketplacePage> {
                                     childAspectRatio: 0.65,
                                   ),
                               itemBuilder: (context, index) {
-                                final product = _filteredProducts[index];
+                                final product = filteredProducts[index];
                                 return _buildProductCard(product);
                               },
                             ),
@@ -386,8 +301,10 @@ class _MarketplacePageState extends State<MarketplacePage> {
                 ],
               ),
             ),
-          )
-        );
+          );
+        },
+      ),
+    );
   }
 
   // ============================ Drawer helper ============================
@@ -400,7 +317,7 @@ class _MarketplacePageState extends State<MarketplacePage> {
   // ============================ END ============================
 
   // ============================ Product card builder ============================
-  Widget _buildProductCard(Map<String, dynamic> product) {
+  Widget _buildProductCard(MarketplaceProducts product) {
     return Container(
       decoration: BoxDecoration(
         color: const Color.fromARGB(255, 28, 28, 28),
@@ -409,7 +326,7 @@ class _MarketplacePageState extends State<MarketplacePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ============================ Product image with condition badge ============================
+          // ============================ Product image with edit/delete buttons ============================
           Stack(
             children: [
               ClipRRect(
@@ -417,7 +334,7 @@ class _MarketplacePageState extends State<MarketplacePage> {
                   top: Radius.circular(16),
                 ),
                 child: Image.network(
-                  product['image'],
+                  product.productImage,
                   height: 140,
                   width: double.infinity,
                   fit: BoxFit.cover,
@@ -432,16 +349,54 @@ class _MarketplacePageState extends State<MarketplacePage> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: _getConditionColor(product['condition']),
+                    color: _getConditionColor(product.productCategory),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    product['condition'],
+                    product.productCategory,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                     ),
+                  ),
+                ),
+              ),
+              // Edit button at top left
+              Positioned(
+                top: 8,
+                left: 8,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.6),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.edit, color: Colors.white, size: 18),
+                    onPressed: () {
+                      _showEditProductModal(context, product);
+                    },
+                  ),
+                ),
+              ),
+              // Delete button near top
+              Positioned(
+                top: 8,
+                left: 40,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.6),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.delete,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                    onPressed: () {
+                      _deleteProduct(product.id!);
+                    },
                   ),
                 ),
               ),
@@ -458,7 +413,7 @@ class _MarketplacePageState extends State<MarketplacePage> {
                 children: [
                   // Product name
                   Text(
-                    product['name'],
+                    product.productName,
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
@@ -469,14 +424,13 @@ class _MarketplacePageState extends State<MarketplacePage> {
                   ),
                   const SizedBox(height: 4),
 
-                  // Product description
-                  if (product['description'] != null)
-                    Text(
-                      product['description'],
-                      style: TextStyle(fontSize: 11, color: Colors.grey[500]),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                  // Product seller
+                  Text(
+                    'by ${product.productSeller}',
+                    style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
 
                   const Spacer(),
 
@@ -486,7 +440,7 @@ class _MarketplacePageState extends State<MarketplacePage> {
                       locale: 'id_ID',
                       symbol: 'Rp',
                       decimalDigits: 0,
-                    ).format(product['price']),
+                    ).format(int.tryParse(product.productPrice) ?? 0),
                     style: const TextStyle(
                       color: Color(0xFF63CFC0),
                       fontWeight: FontWeight.bold,
@@ -511,13 +465,21 @@ class _MarketplacePageState extends State<MarketplacePage> {
                         padding: const EdgeInsets.symmetric(vertical: 8),
                       ),
                       onPressed: () {
+                        // Create a temporary cart item with all required attributes
+                        Map<String, dynamic> cartItem = {
+                          'productName': product.productName,
+                          'productPrice': product.productPrice,
+                          'productSeller': product.productSeller,
+                          'productCategory': product.productCategory,
+                          'productImage': product.productImage,
+                        };
                         setState(() {
-                          _cart.add(product);
+                          _cart.add(cartItem);
                         });
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
-                              '${product['name']} ditambahkan ke keranjang!',
+                              '${product.productName} ditambahkan ke keranjang!',
                             ),
                             duration: const Duration(seconds: 2),
                             backgroundColor: const Color(0xFF63CFC0),
@@ -545,4 +507,408 @@ class _MarketplacePageState extends State<MarketplacePage> {
   }
 
   // ============================ END ============================
+
+  // Helper function to get condition color
+  Color _getConditionColor(String condition) {
+    switch (condition) {
+      case 'Baru':
+        return Colors.green;
+      case 'Bekas Layak':
+        return Colors.orange;
+      case 'Daur Ulang':
+        return Colors.blue;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  // Show add product modal bottom sheet
+  void _showAddProductModal(BuildContext context) {
+    final TextEditingController nameController = TextEditingController();
+    final TextEditingController priceController = TextEditingController();
+    final TextEditingController sellerController = TextEditingController();
+    final TextEditingController categoryController = TextEditingController();
+    final TextEditingController imageController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          left: 16,
+          right: 16,
+          top: 16,
+        ),
+        decoration: const BoxDecoration(
+          color: Color.fromARGB(255, 28, 28, 28),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[600],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Tambah Produk Baru',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Form fields
+              _buildTextField(
+                nameController,
+                'Nama Produk',
+                'Contoh: Jaket Bekas',
+              ),
+              _buildTextField(priceController, 'Harga', 'Contoh: 50000'),
+              _buildTextField(sellerController, 'Nama Penjual', 'Contoh: Budi'),
+              _buildCategoryField(categoryController),
+              _buildTextField(
+                imageController,
+                'URL Gambar',
+                'Contoh: https://...',
+              ),
+
+              const SizedBox(height: 24),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF63CFC0),
+                  minimumSize: const Size(double.infinity, 48),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                onPressed: () async {
+                  if (nameController.text.isNotEmpty &&
+                      priceController.text.isNotEmpty &&
+                      sellerController.text.isNotEmpty &&
+                      categoryController.text.isNotEmpty &&
+                      imageController.text.isNotEmpty) {
+                    if (mounted) {
+                      await firestoreService.addProduct(
+                        nameController.text,
+                        priceController.text,
+                        sellerController.text,
+                        categoryController.text,
+                        imageController.text,
+                      );
+                      if (mounted) {
+                        Navigator.of(context).pop(); // Close modal
+                      }
+                    }
+                  } else {
+                    // Show error message
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Mohon lengkapi semua field'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
+                },
+                child: const Text(
+                  'Tambah Produk',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Show edit product modal bottom sheet
+  void _showEditProductModal(
+    BuildContext context,
+    MarketplaceProducts product,
+  ) {
+    final TextEditingController nameController = TextEditingController(
+      text: product.productName,
+    );
+    final TextEditingController priceController = TextEditingController(
+      text: product.productPrice,
+    );
+    final TextEditingController sellerController = TextEditingController(
+      text: product.productSeller,
+    );
+    final TextEditingController categoryController = TextEditingController(
+      text: product.productCategory,
+    );
+    final TextEditingController imageController = TextEditingController(
+      text: product.productImage,
+    );
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          left: 16,
+          right: 16,
+          top: 16,
+        ),
+        decoration: const BoxDecoration(
+          color: Color.fromARGB(255, 28, 28, 28),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[600],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Edit Produk',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Form fields
+              _buildTextField(
+                nameController,
+                'Nama Produk',
+                'Contoh: Jaket Bekas',
+              ),
+              _buildTextField(priceController, 'Harga', 'Contoh: 50000'),
+              _buildTextField(sellerController, 'Nama Penjual', 'Contoh: Budi'),
+              _buildCategoryField(categoryController),
+              _buildTextField(
+                imageController,
+                'URL Gambar',
+                'Contoh: https://...',
+              ),
+
+              const SizedBox(height: 24),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF63CFC0),
+                  minimumSize: const Size(double.infinity, 48),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                onPressed: () async {
+                  if (nameController.text.isNotEmpty &&
+                      priceController.text.isNotEmpty &&
+                      sellerController.text.isNotEmpty &&
+                      categoryController.text.isNotEmpty &&
+                      imageController.text.isNotEmpty) {
+                    if (mounted) {
+                      await firestoreService.updateProduct(
+                        product.id!,
+                        nameController.text,
+                        priceController.text,
+                        sellerController.text,
+                        categoryController.text,
+                        imageController.text,
+                      );
+                      if (mounted) {
+                        Navigator.of(context).pop(); // Close modal
+                      }
+                    }
+                  } else {
+                    // Show error message
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Mohon lengkapi semua field'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
+                },
+                child: const Text(
+                  'Update Produk',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Delete product
+  void _deleteProduct(String productId) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color.fromARGB(255, 28, 28, 28),
+        title: const Text(
+          'Hapus Produk',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          'Apakah Anda yakin ingin menghapus produk ini?',
+          style: TextStyle(color: Colors.white),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () async {
+              if (mounted) {
+                await firestoreService.deleteProduct(productId);
+                if (mounted) {
+                  Navigator.of(context).pop(); // Close dialog
+                }
+              }
+            },
+            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Build text field helper
+  Widget _buildTextField(
+    TextEditingController controller,
+    String label,
+    String hint,
+  ) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: TextField(
+        controller: controller,
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hint,
+          hintStyle: TextStyle(color: Colors.grey[500]),
+          labelStyle: const TextStyle(color: Colors.grey),
+          filled: true,
+          fillColor: Colors.grey[900],
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide.none,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Build category field
+  Widget _buildCategoryField(TextEditingController controller) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: TextField(
+        controller: controller,
+        style: const TextStyle(color: Colors.white),
+        readOnly: true,
+        decoration: InputDecoration(
+          labelText: 'Kategori',
+          hintText: 'Pilih kategori',
+          hintStyle: TextStyle(color: Colors.grey[500]),
+          labelStyle: const TextStyle(color: Colors.grey),
+          filled: true,
+          fillColor: Colors.grey[900],
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide.none,
+          ),
+        ),
+        onTap: () {
+          _showCategoryPicker(controller);
+        },
+      ),
+    );
+  }
+
+  // Show category picker
+  void _showCategoryPicker(TextEditingController controller) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Color.fromARGB(255, 28, 28, 28),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.symmetric(vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.grey[600],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text(
+                'Pilih Kategori',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            ..._conditions
+                .where((c) => c != 'Semua')
+                .map(
+                  (category) => ListTile(
+                    title: Text(
+                      category,
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    onTap: () {
+                      controller.text = category;
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ),
+          ],
+        ),
+      ),
+    );
+  }
 }

@@ -53,10 +53,61 @@ class BlogPost {
   }
 }
 
+class MarketplaceProducts {
+  final String? id;
+  final String productName;
+  final String productPrice;
+  final String productSeller;
+  final String productCategory;
+  final String productImage;
+  final Timestamp? date;
+
+  MarketplaceProducts({
+    this.id,
+    required this.productName,
+    required this.productPrice,
+    required this.productSeller,
+    required this.productCategory,
+    required this.productImage,
+    this.date,
+  });
+
+  // Convert dokumne Firestore -> objek MarketplaceProducts
+  factory MarketplaceProducts.fromFirestore(
+    DocumentSnapshot<Map<String, dynamic>> snapshot,
+  ) {
+    final data = snapshot.data()!;
+    return MarketplaceProducts(
+      id: snapshot.id,
+      productName: data['productName'] ?? '',
+      productPrice: data['productPrice'] ?? '',
+      productSeller: data['productSeller'] ?? '',
+      productCategory: data['productCategory'] ?? '',
+      productImage: data['productImage'] ?? '',
+      date: data['date'],
+    );
+  }
+
+  // Convert objek MarketplaceProducts -> format firestore document
+  Map<String, dynamic> toFirestore() {
+    return {
+      'productName': productName,
+      'productPrice': productPrice,
+      'productSeller': productSeller,
+      'productCategory': productCategory,
+      'productImage': productImage,
+      'date': date ?? Timestamp.now(),
+    };
+  }
+}
+
 class FirestoreService {
   final CollectionReference blogPosts = FirebaseFirestore.instance.collection(
     'blogPosts',
   );
+
+  final CollectionReference marketplaceProducts = FirebaseFirestore.instance
+      .collection('marketplaceProducts');
 
   // Blog Post CRUD
   // CREATE
@@ -119,5 +170,64 @@ class FirestoreService {
   // DELETE - blog post
   Future<void> deleteBlogPost(String id) async {
     await blogPosts.doc(id).delete();
+  }
+
+  // Marketplace Page CRUD
+  // CREATE
+  Future<void> addProduct(
+    String productName,
+    String productPrice,
+    String productSeller,
+    String productCategory,
+    String productImage,
+  ) {
+    return marketplaceProducts.add({
+      'productName': productName,
+      'productPrice': productPrice,
+      'productSeller': productSeller,
+      'productCategory': productCategory,
+      'productImage': productImage,
+      'date': Timestamp.now(),
+    });
+  }
+
+  // READ - Get all products
+  Stream<QuerySnapshot> getProducts() {
+    return marketplaceProducts.snapshots();
+  }
+
+  // READ - Get product by category
+  Future<MarketplaceProducts?> getProductByCategory(String category) async {
+    final doc = await marketplaceProducts.doc(category).get();
+    if (doc.exists) {
+      return MarketplaceProducts.fromFirestore(
+        doc as DocumentSnapshot<Map<String, dynamic>>,
+      );
+    }
+    return null;
+  }
+
+  // UPDATE - product
+  Future<void> updateProduct(
+    String id,
+    String productName,
+    String productPrice,
+    String productSeller,
+    String productCategory,
+    String productImage,
+  ) {
+    return marketplaceProducts.doc(id).update({
+      'productName': productName,
+      'productPrice': productPrice,
+      'productSeller': productSeller,
+      'productCategory': productCategory,
+      'productImage': productImage,
+      'date': Timestamp.now(),
+    });
+  }
+
+  // DELETE - product
+  Future<void> deleteProduct(String id) async {
+    await marketplaceProducts.doc(id).delete();
   }
 }
