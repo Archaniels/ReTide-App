@@ -112,13 +112,31 @@ class _CartPageState extends State<CartPage> {
         backgroundColor: const Color.fromARGB(255, 28, 28, 28),
         title: const Text('Checkout', style: TextStyle(color: Colors.white)),
         content: Text(
-          'Total: ${_calculateTotal()}\n\nFitur checkout akan segera tersedia.',
+          'Total: ${_calculateTotal()}.',
           style: const TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
+            style: TextButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK', style: TextStyle(color: Colors.green)),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white)),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(backgroundColor: Colors.green),
+            onPressed: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Checkout berhasil!'),
+                  duration: Duration(seconds: 2),
+                  backgroundColor: Colors.green,
+                ),
+              );
+              setState(() {
+                _cartItems.clear();
+              });
+            },
+            child: const Text('Lanjut', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
