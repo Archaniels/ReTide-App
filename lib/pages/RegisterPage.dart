@@ -1,176 +1,168 @@
 import 'package:flutter/material.dart';
-// ============================ PAGES ============================
-import 'AccountsPage.dart';
-import 'LoginPage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'HomePage.dart';
-// ============================ END ============================
+import 'LoginPage.dart';
 
-class RegisterPage extends StatelessWidget {
+class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
+
+  @override
+  State<RegisterPage> createState() => _RegisterPageState();
+}
+
+class _RegisterPageState extends State<RegisterPage> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _isLoading = false;
+
+  Future<void> _handleRegister() async {
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Email dan Password tidak boleh kosong")),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      // 1. Buat User di Firebase Auth
+      UserCredential userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim(),
+          );
+
+      // 2. Ambil username otomatis dari email (sebelum tanda @)
+      String autoUsername = _emailController.text.trim().split('@')[0];
+
+      // 3. Simpan data awal ke Firestore
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .set({
+            'username': autoUsername, // Username default dari email
+            'email': _emailController.text.trim(),
+            'phone': '', // Kosong, nanti diisi di Account Page
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const HomePage()),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message ?? "Error")));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 17, 17, 17),
-      // ============================ AppBar ============================
-      extendBodyBehindAppBar: true,
+      backgroundColor: const Color.fromARGB(255, 17, 17, 17),
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
-        backgroundColor: Color.fromARGB(255, 17, 17, 17),
-        title: Text('ReTide', style: TextStyle(color: Colors.white)),
       ),
-
-      // ============================ END ============================
-      body: Align(
-        alignment: Alignment.center,
-
-        // ============================ Title and Subtitle ============================
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
+            const SizedBox(height: 40),
+            const Text(
               'Register',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 24,
+                fontSize: 32,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 10),
+            const Text(
+              'Ayo bergabung dengan ReTide!',
+              style: TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 40),
 
-            Column(
-              children: [
-                Text(
-                  'Masukkan username, email dan password untuk register',
-                  style: TextStyle(color: Colors.white),
-                ),
-                SizedBox(height: 64),
-              ],
+            // Hanya perlu Email & Password
+            _buildInput(_emailController, 'Email', Icons.email),
+            _buildInput(
+              _passwordController,
+              'Password',
+              Icons.lock,
+              isObscure: true,
             ),
 
-            // ============================ END ============================
-
-            // ============================ Username TextField ============================
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 32.0),
-              child: TextField(
-                style: TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: 'Username',
-                  labelStyle: TextStyle(color: Colors.white),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white),
-                    borderRadius: BorderRadius.all(Radius.circular(8.0)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF63CFC0)),
-                    borderRadius: BorderRadius.all(Radius.circular(8.0)),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _handleRegister,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
                   ),
                 ),
+                child: _isLoading
+                    ? const CircularProgressIndicator(color: Colors.black)
+                    : const Text(
+                        'Register',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               ),
             ),
-
-            // ============================ END ============================
-            SizedBox(height: 16),
-
-            // ============================ Email TextField ============================
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 32.0),
-              child: TextField(
-                style: TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  labelStyle: TextStyle(color: Colors.white),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white),
-                    borderRadius: BorderRadius.all(Radius.circular(8.0)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF63CFC0)),
-                    borderRadius: BorderRadius.all(Radius.circular(8.0)),
-                  ),
-                ),
-              ),
-            ),
-
-            // ============================ END ============================
-            SizedBox(height: 16),
-
-            // ============================ Password Textfield ============================
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 32.0),
-              child: TextField(
-                style: TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  labelStyle: TextStyle(color: Colors.white),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white),
-                    borderRadius: BorderRadius.all(Radius.circular(8.0)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF63CFC0)),
-                    borderRadius: BorderRadius.all(Radius.circular(8.0)),
-                  ),
-                ),
-              ),
-            ),
-
-            // ============================ END ============================
-            SizedBox(height: 16),
-
-            // ============================ Text: Sudah punya akun? ============================
+            const SizedBox(height: 10),
             TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const LoginPage()),
-                );
-              },
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginPage()),
+              ),
               child: const Text(
-                "Sudah punya akun? Masuk di sini",
-                style: TextStyle(
-                  color: Color(0xFF63CFC0),
-                  decoration: TextDecoration.underline,
-                ),
+                'Sudah punya akun? Login',
+                style: TextStyle(color: Color(0xFF63CFC0)),
               ),
             ),
-
-            // ============================ END ============================
-            const SizedBox(height: 16),
-
-            // ============================ Login Button ============================
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => const HomePage()),
-                  (Route<dynamic> route) => false,
-                );
-              },
-
-              label: const Text(
-                "Register",
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 14,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-              ),
-            ),
-            // ============================ END ============================
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInput(
+    TextEditingController controller,
+    String hint,
+    IconData icon, {
+    bool isObscure = false,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: TextField(
+        controller: controller,
+        obscureText: isObscure,
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: const TextStyle(color: Colors.grey),
+          prefixIcon: Icon(icon, color: Colors.grey),
+          filled: true,
+          fillColor: const Color(0xFF1E1E1E),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
         ),
       ),
     );

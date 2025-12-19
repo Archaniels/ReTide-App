@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-// ============================ PAGES ============================
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'LoginPage.dart';
-import 'RegisterPage.dart';
-// ============================ END ============================
 
 class AccountsPage extends StatefulWidget {
   const AccountsPage({super.key});
@@ -12,202 +11,245 @@ class AccountsPage extends StatefulWidget {
 }
 
 class _AccountsPageState extends State<AccountsPage> {
-  // Widget pembantu untuk membuat baris Label dan TextField
-  Widget _buildTextField(String label, String initialValue) {
-    // Warna latar belakang gelap untuk input field
-    const inputFillColor = Color(0xFF1E1E1E); 
-    // Warna utama (teal/hijau muda)
-    const primaryColor = Color(0xFF63CFC0); 
+  final User? user = FirebaseAuth.instance.currentUser;
+  
+  // Controller untuk Form
+  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController(); 
+  final _phoneController = TextEditingController();
+  
+  bool _isUpdating = false;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(color: Colors.white, fontSize: 16),
+  final Color primaryColor = const Color(0xFF63CFC0);
+  final Color cardBackgroundColor = const Color(0xFF1E1E1E);
+
+  // --- FUNGSI UPDATE DATA PROFIL ---
+  Future<void> _updateProfile() async {
+    setState(() => _isUpdating = true);
+    try {
+      await FirebaseFirestore.instance.collection('users').doc(user!.uid).set({
+        'username': _usernameController.text.trim(),
+        'phone': _phoneController.text.trim(),
+        'email': user!.email, 
+      }, SetOptions(merge: true)); 
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profil berhasil diperbarui!')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal memperbarui: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isUpdating = false);
+    }
+  }
+
+  // --- DIALOG GANTI PASSWORD ---
+  void _showPasswordDialog() {
+    final TextEditingController _oldPassController = TextEditingController();
+    final TextEditingController _newPassController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: cardBackgroundColor,
+        title: const Text('Ganti Password', style: TextStyle(color: Colors.white)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildPopupTextField(_oldPassController, 'Password Lama', true),
+            const SizedBox(height: 10),
+            _buildPopupTextField(_newPassController, 'Password Baru', true),
+          ],
         ),
-        const SizedBox(height: 8.0),
-        TextFormField(
-          initialValue: initialValue,
-          style: const TextStyle(color: Colors.white),
-          cursorColor: primaryColor,
-          decoration: InputDecoration(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-            filled: true,
-            fillColor: inputFillColor, 
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.0),
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.0),
-              borderSide: BorderSide.none,
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.0),
-              borderSide: const BorderSide(color: primaryColor, width: 1.0), 
-            ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
+          ElevatedButton(
+            onPressed: () async {
+              try {
+                AuthCredential credential = EmailAuthProvider.credential(
+                    email: user!.email!, password: _oldPassController.text.trim());
+                await user!.reauthenticateWithCredential(credential);
+                await user!.updatePassword(_newPassController.text.trim());
+                if (mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Password diganti!')));
+                }
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal: Password lama salah')));
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: primaryColor),
+            child: const Text('Simpan', style: TextStyle(color: Colors.black)),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    // Warna utama (teal/hijau muda)
-    const primaryColor = Color(0xFF63CFC0); 
-    // Warna latar belakang card/kontainer
-    const cardBackgroundColor = Color(0xFF1E1E1E); 
-
     return Scaffold(
       backgroundColor: Colors.black,
-      // ============================ AppBar ============================
-      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        iconTheme: const IconThemeData(color: Colors.white),
-        backgroundColor: Colors.transparent,
         title: const Text('Account', style: TextStyle(color: Colors.white)),
-        // Menghilangkan tombol back default jika ini adalah halaman utama akun,
-        // atau biarkan jika ada navigasi ke halaman ini.
-        // Jika perlu tombol back:
-        // leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
-      // ============================ END ============================
+      body: StreamBuilder<DocumentSnapshot>(
+        stream: FirebaseFirestore.instance.collection('users').doc(user?.uid).snapshots(),
+        builder: (context, snapshot) {
+          // Jika dokumen belum ada di Firestore, kita tampilkan form kosong agar user bisa mengisi
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-      // ============================ Hamburger Menu (Dibiarkan Sesuai Kode Asli) ============================
-      endDrawer: Drawer(
-        backgroundColor: Colors.black,
-        child: ListView(
-          padding: const EdgeInsets.all(16.0),
-          children: [
-            DrawerHeader(
-              decoration: const BoxDecoration(color: Colors.black),
-              child: Text(
-                'ReTide',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-      // ============================ END ============================
+          if (snapshot.hasData && snapshot.data!.exists) {
+            var data = snapshot.data!.data() as Map<String, dynamic>;
+            // Isi controller jika field tidak kosong
+            if (_usernameController.text.isEmpty) _usernameController.text = data['username'] ?? '';
+            if (_phoneController.text.isEmpty) _phoneController.text = data['phone'] ?? '';
+          }
+          
+          _emailController.text = user?.email ?? '';
 
-      // ============================ Body Content ============================
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.only(
-          top: 100.0, // Memberi ruang dari AppBar
-          left: 20.0,
-          right: 20.0,
-          bottom: 20.0,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            // --- Title Section ---
-            const Text(
-              'Account',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: primaryColor, // Warna teal/hijau muda
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8.0),
-            const Text(
-              'Pengaturan akun, profil, dan preferensi Anda.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white70, fontSize: 14),
-            ),
-            const SizedBox(height: 30.0),
-            // --- End Title Section ---
-
-            // --- Account Settings Card ---
-            Container(
-              padding: const EdgeInsets.all(20.0),
-              decoration: BoxDecoration(
-                color: cardBackgroundColor, 
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  const Text(
-                    'Account Settings',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(20.0),
+                  decoration: BoxDecoration(
+                    color: cardBackgroundColor,
+                    borderRadius: BorderRadius.circular(10.0),
                   ),
-                  const Divider(color: Colors.white10, height: 30.0), 
-                  
-                  // Username Field
-                  _buildTextField('Username:', 'Bagaskara'),
-                  const SizedBox(height: 20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Account Settings', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                      const Divider(color: Colors.white10, height: 30),
+                      
+                      // FORM KOLOM INPUT
+                      _buildFormInput("Username", _usernameController),
+                      _buildFormInput("Email", _emailController, enabled: false), // Email tidak bisa diedit
+                      _buildFormInput("No Telepon", _phoneController),
 
-                  // Email Field
-                  _buildTextField('Email:', 'bagaskara@gmail.com'),
-                  const SizedBox(height: 20.0),
-
-                  // No Telp Field
-                  _buildTextField('No Telp:', ''),
-                  const SizedBox(height: 40.0),
-
-                  // Action Buttons
-                  Row(
-                    children: <Widget>[
-                      const SizedBox(width: 10),
-                      // Update Settings Button (Warna Teal/Hijau Muda)
-                      Expanded(
-                        flex: 2,
-                        child: ElevatedButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: primaryColor, 
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Text(
-                            'Update Settings',
-                            style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600),
-                          ),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton(
+                          onPressed: _showPasswordDialog,
+                          child: Text("Ganti Password?", style: TextStyle(color: primaryColor)),
                         ),
                       ),
-                      // Delete Account Button (Warna Merah)
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFD32F2F), // Warna merah
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                      
+                      const SizedBox(height: 20),
+                      
+                      // Tombol Update & Delete
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: ElevatedButton(
+                              onPressed: _isUpdating ? null : _updateProfile,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: primaryColor,
+                                padding: const EdgeInsets.symmetric(vertical: 14)
+                              ),
+                              child: _isUpdating 
+                                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                                : const Text('Update Settings', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
                             ),
                           ),
-                          child: const Text(
-                            'Delete Account',
-                            style: TextStyle(color: Colors.white),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () => _showDeleteConfirm(),
+                              style: ElevatedButton.styleFrom(backgroundColor: Colors.red, padding: const EdgeInsets.symmetric(vertical: 14)),
+                              child: const Text('Delete', style: TextStyle(color: Colors.white)),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 20),
+                TextButton(
+                  onPressed: () async {
+                    await FirebaseAuth.instance.signOut();
+                    if (mounted) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginPage()));
+                  },
+                  child: const Text("Logout", style: TextStyle(color: Colors.grey)),
+                )
+              ],
             ),
-            // --- End Account Settings Card ---
-          ],
-        ),
+          );
+        },
       ),
-      // ============================ END Body Content ============================
+    );
+  }
+
+  // Widget untuk baris input form
+  Widget _buildFormInput(String label, TextEditingController controller, {bool enabled = true}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          enabled: enabled,
+          style: TextStyle(color: enabled ? Colors.white : Colors.grey),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.black,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget _buildPopupTextField(TextEditingController controller, String hint, bool obscure) {
+    return TextField(
+      controller: controller,
+      obscureText: obscure,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: const TextStyle(color: Colors.grey),
+        filled: true,
+        fillColor: Colors.black,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+  }
+
+  void _showDeleteConfirm() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: cardBackgroundColor,
+        title: const Text('Hapus Akun?', style: TextStyle(color: Colors.white)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
+          TextButton(
+            onPressed: () async {
+              await FirebaseFirestore.instance.collection('users').doc(user!.uid).delete();
+              await user!.delete();
+              if (mounted) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginPage()));
+            },
+            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
     );
   }
 }

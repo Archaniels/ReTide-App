@@ -17,7 +17,10 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      return web;
+      throw UnsupportedError(
+        'DefaultFirebaseOptions have not been configured for web - '
+        'you can reconfigure this by running the FlutterFire CLI again.',
+      );
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -33,7 +36,10 @@ class DefaultFirebaseOptions {
           'you can reconfigure this by running the FlutterFire CLI again.',
         );
       case TargetPlatform.windows:
-        return windows;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for windows - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -46,31 +52,11 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDVlaPEDuxoxu-xzSPiAyQz5ffn9eHJMhs',
-    appId: '1:855310351966:web:45e54d01473b824ac93ecf',
-    messagingSenderId: '855310351966',
-    projectId: 'retide-6fb42',
-    authDomain: 'retide-6fb42.firebaseapp.com',
-    storageBucket: 'retide-6fb42.firebasestorage.app',
-    measurementId: 'G-WKNJQS57BY',
-  );
-
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDjfekYDYLQ11asqtkrBw0aQljPQlFbA7o',
-    appId: '1:855310351966:android:364f56a98781e53cc93ecf',
-    messagingSenderId: '855310351966',
-    projectId: 'retide-6fb42',
-    storageBucket: 'retide-6fb42.firebasestorage.app',
-  );
-
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyDVlaPEDuxoxu-xzSPiAyQz5ffn9eHJMhs',
-    appId: '1:855310351966:web:b884dab1b369f422c93ecf',
-    messagingSenderId: '855310351966',
-    projectId: 'retide-6fb42',
-    authDomain: 'retide-6fb42.firebaseapp.com',
-    storageBucket: 'retide-6fb42.firebasestorage.app',
-    measurementId: 'G-N8P6TCM1XZ',
+    apiKey: 'AIzaSyD2xeEWsiuAonWGcTGlQCdisFA8stno1cQ',
+    appId: '1:361964251240:android:12346db951fc2f7a2373dd',
+    messagingSenderId: '361964251240',
+    projectId: 'tubes-2f8d8',
+    storageBucket: 'tubes-2f8d8.firebasestorage.app',
   );
 }
