@@ -41,11 +41,11 @@ class _RegisterPageState extends State<RegisterPage> {
           .collection('users')
           .doc(userCredential.user!.uid)
           .set({
-            'username': autoUsername, // Username default dari email
+            'username': autoUsername,
             'email': _emailController.text.trim(),
-            'phone': '', // Kosong, nanti diisi di Account Page
+            'phone': '',
             'createdAt': FieldValue.serverTimestamp(),
-          });
+          }, SetOptions(merge: true));
 
       if (mounted) {
         Navigator.pushReplacement(

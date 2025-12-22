@@ -2,10 +2,12 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 // ============================ PAGES ============================
 import 'AccountsPage.dart';
-import 'BlogPage.dart';
 import 'MarketplacePage.dart';
-import 'DonationPage.dart';
 import 'HomePage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
+
 // ============================ END ============================
 
 class DonationPage extends StatefulWidget {
@@ -37,6 +39,9 @@ class _DonationPageState extends State<DonationPage> {
   void initState() {
     super.initState();
 
+    debugPrint("UID LOGIN: ${FirebaseAuth.instance.currentUser?.uid}");
+    debugPrint("EMAIL LOGIN: ${FirebaseAuth.instance.currentUser?.email}");
+
     customAmountFocus.addListener(() {
       if (customAmountFocus.hasFocus) {
         setState(() {
@@ -51,6 +56,57 @@ class _DonationPageState extends State<DonationPage> {
     customAmountFocus.dispose();
     customAmountController.dispose();
     super.dispose();
+  }
+
+  Future<void> saveDonationToFirestore() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) return;
+
+    // Tentukan nominal
+    int amount;
+    if (customAmountController.text.isNotEmpty) {
+      amount = int.tryParse(customAmountController.text) ?? 0;
+    } else {
+      amount = int.parse(selectedAmount!.replaceAll(RegExp(r'[^0-9]'), ''));
+    }
+
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('donations')
+        .add({
+          'donationType': selectedDonationType,
+          'amount': amount,
+          'frequency': selectedFrequency,
+          'status': 'success',
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+  }
+
+  void showSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text("Pembayaran Berhasil"),
+        content: const Text(
+          "Terima kasih telah berdonasi 🌱\nDonasi kamu sangat berarti.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // tutup dialog
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const HomePage()),
+              );
+            },
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -416,33 +472,37 @@ class _DonationPageState extends State<DonationPage> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
-                                onPressed: () {
+                                onPressed: () async {
                                   final amount =
                                       int.tryParse(
                                         customAmountController.text,
                                       ) ??
                                       0;
 
-                                  // Jika user mengetik custom amount tetapi kurang dari 5000
+                                  // Validasi custom amount
                                   if (customAmountController.text.isNotEmpty &&
                                       amount < 5000) {
                                     setState(() {
                                       amountErrorText =
                                           "Minimum donation is Rp5.000";
                                     });
-                                    return; // Stop, jangan lanjut checkout
-                                  }
-
-                                  // Jika user pilih preset Rp25k / Rp50k / Rp100k → aman
-                                  if (selectedAmount != null) {
-                                    print(
-                                      "Checkout with preset amount: $selectedAmount",
-                                    );
                                     return;
                                   }
 
-                                  // Jika semua aman dan valid
-                                  print("Checkout with custom amount: $amount");
+                                  // Validasi preset atau custom
+                                  if (selectedAmount == null &&
+                                      customAmountController.text.isEmpty) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          "Silakan pilih atau isi nominal donasi",
+                                        ),
+                                      ),
+                                    );
+                                    return;
+                                  }
+                                  await saveDonationToFirestore();
+                                  showSuccessDialog();
                                 },
 
                                 child: const Text(
@@ -455,6 +515,107 @@ class _DonationPageState extends State<DonationPage> {
                               ),
                             ),
                           ],
+                        ),
+                        const SizedBox(height: 40),
+
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Riwayat Donasi Kamu",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        StreamBuilder<QuerySnapshot>(
+                          stream: FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(FirebaseAuth.instance.currentUser!.uid)
+                              .collection('donations')
+                              .orderBy('createdAt', descending: true)
+                              .snapshots(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const CircularProgressIndicator();
+                            }
+
+                            if (!snapshot.hasData ||
+                                snapshot.data!.docs.isEmpty) {
+                              return const Text(
+                                "Belum ada donasi.",
+                                style: TextStyle(color: Colors.white70),
+                              );
+                            }
+
+                            return Column(
+                              children: snapshot.data!.docs.map((doc) {
+                                final data = doc.data() as Map<String, dynamic>;
+                                return SizedBox(
+                                  width: double.infinity,
+                                  child: Container(
+                                    margin: const EdgeInsets.only(bottom: 14),
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black45,
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.volunteer_activism,
+                                          color: Colors.tealAccent,
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                data['donationType'],
+                                                style: const TextStyle(
+                                                  color: Colors.tealAccent,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                "Rp ${data['amount']}",
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                DateFormat(
+                                                  'dd MMM yyyy',
+                                                ).format(
+                                                  (data['createdAt']
+                                                          as Timestamp)
+                                                      .toDate(),
+                                                ),
+                                                style: const TextStyle(
+                                                  color: Colors.white54,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            );
+                          },
                         ),
                       ],
                     ),
