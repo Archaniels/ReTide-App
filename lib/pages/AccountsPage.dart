@@ -105,7 +105,6 @@ class _AccountsPageState extends State<AccountsPage> {
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance.collection('users').doc(user?.uid).snapshots(),
         builder: (context, snapshot) {
-          // Jika dokumen belum ada di Firestore, kita tampilkan form kosong agar user bisa mengisi
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
