@@ -26,17 +26,17 @@ class _RegisterPageState extends State<RegisterPage> {
 
     setState(() => _isLoading = true);
     try {
-      // 1. Buat User di Firebase Auth
+      // Buat User di Firebase Auth
       UserCredential userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(
             email: _emailController.text.trim(),
             password: _passwordController.text.trim(),
           );
 
-      // 2. Ambil username otomatis dari email (sebelum tanda @)
+      // Ambil username otomatis dari email (sebelum tanda @)
       String autoUsername = _emailController.text.trim().split('@')[0];
 
-      // 3. Simpan data awal ke Firestore
+      // Simpan data awal ke Firestore
       await FirebaseFirestore.instance
           .collection('users')
           .doc(userCredential.user!.uid)

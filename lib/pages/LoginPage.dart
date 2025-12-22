@@ -11,30 +11,39 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  // Controller untuk menangkap teks yang diinput user pada kolom Email & Password
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  
   bool _isLoading = false;
 
+  // FUNGSI UTAMA: Menangani logika Login ke Firebase
   Future<void> _handleLogin() async {
+    // Ubah tampilan menjadi loading (tombol berputar)
     setState(() => _isLoading = true);
+
     try {
+      //  Memanggil fungsi Firebase untuk cek email dan password
       await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
+        email: _emailController.text.trim(), 
         password: _passwordController.text.trim(),
       );
 
+      // Jika login berhasil, pindahkan user ke HomePage
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (_) => const HomePage()),
-          (route) => false,
+          (route) => false, 
         );
       }
     } on FirebaseAuthException catch (e) {
+      // Jika login gagal (contoh: pass salah), tampilkan pesan error lewat SnackBar
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(e.message ?? "Login Gagal")));
     } finally {
+      // Setelah selesai (berhasil/gagal), matikan status loading
       if (mounted) setState(() => _isLoading = false);
     }
   }
@@ -42,7 +51,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 17, 17, 17),
+      backgroundColor: const Color.fromARGB(255, 17, 17, 17), 
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -57,14 +66,19 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
               const SizedBox(height: 40),
+              
               _buildInput(_emailController, 'Email', Icons.email),
+              
               _buildInput(
                 _passwordController,
                 'Password',
                 Icons.lock,
                 isObscure: true,
               ),
+              
               const SizedBox(height: 24),
+              
+              // TOMBOL LOGIN
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -77,13 +91,15 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   child: _isLoading
-                      ? const CircularProgressIndicator()
+                      ? const CircularProgressIndicator() 
                       : const Text(
                           'Login',
                           style: TextStyle(color: Colors.black, fontSize: 18),
                         ),
                 ),
               ),
+              
+              // TOMBOL PINDAH KE REGISTER
               TextButton(
                 onPressed: () => Navigator.push(
                   context,
@@ -105,23 +121,23 @@ class _LoginPageState extends State<LoginPage> {
     TextEditingController controller,
     String hint,
     IconData icon, {
-    bool isObscure = false,
+    bool isObscure = false, 
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: TextField(
         controller: controller,
-        obscureText: isObscure,
+        obscureText: isObscure, 
         style: const TextStyle(color: Colors.white),
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: const TextStyle(color: Colors.grey),
           prefixIcon: Icon(icon, color: Colors.grey),
           filled: true,
-          fillColor: const Color(0xFF1E1E1E),
+          fillColor: const Color(0xFF1E1E1E), 
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
+            borderSide: BorderSide.none, 
           ),
         ),
       ),
