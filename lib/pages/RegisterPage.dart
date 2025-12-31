@@ -26,23 +26,34 @@ class _RegisterPageState extends State<RegisterPage> {
 
     setState(() => _isLoading = true);
     try {
-      // Buat User di Firebase Auth
+      final String email = _emailController.text.trim();
+
+      // 1. CEK APAKAH EMAIL SUDAH TERDAFTAR DI FIRESTORE
+      final existingEmail = await FirebaseFirestore.instance
+          .collection('users')
+          .where('email', isEqualTo: email)
+          .get();
+
+      if (existingEmail.docs.isNotEmpty) {
+        throw 'Email sudah digunakan oleh akun lain.';
+      }
+
+      // 2. Buat User di Firebase Auth
       UserCredential userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(
-            email: _emailController.text.trim(),
+            email: email,
             password: _passwordController.text.trim(),
           );
 
-      // Ambil username otomatis dari email (sebelum tanda @)
-      String autoUsername = _emailController.text.trim().split('@')[0];
+      String autoUsername = email.split('@')[0];
 
-      // Simpan data awal ke Firestore
+      // 3. Simpan ke Firestore
       await FirebaseFirestore.instance
           .collection('users')
           .doc(userCredential.user!.uid)
           .set({
             'username': autoUsername,
-            'email': _emailController.text.trim(),
+            'email': email,
             'phone': '',
             'createdAt': FieldValue.serverTimestamp(),
           }, SetOptions(merge: true));
@@ -53,10 +64,10 @@ class _RegisterPageState extends State<RegisterPage> {
           MaterialPageRoute(builder: (_) => const HomePage()),
         );
       }
-    } on FirebaseAuthException catch (e) {
+    } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(e.message ?? "Error")));
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

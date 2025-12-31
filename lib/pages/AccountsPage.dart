@@ -12,12 +12,12 @@ class AccountsPage extends StatefulWidget {
 
 class _AccountsPageState extends State<AccountsPage> {
   final User? user = FirebaseAuth.instance.currentUser;
-  
+
   // Controller untuk Form
   final _usernameController = TextEditingController();
-  final _emailController = TextEditingController(); 
+  final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
-  
+
   bool _isUpdating = false;
 
   final Color primaryColor = const Color(0xFF63CFC0);
@@ -25,13 +25,42 @@ class _AccountsPageState extends State<AccountsPage> {
 
   // --- FUNGSI UPDATE DATA PROFIL ---
   Future<void> _updateProfile() async {
+    final String newUsername = _usernameController.text.trim();
+
+    if (newUsername.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Username tidak boleh kosong')),
+      );
+      return;
+    }
+
     setState(() => _isUpdating = true);
     try {
+      // 1. CEK APAKAH USERNAME SUDAH DIGUNAKAN ORANG LAIN
+      // Mencari dokumen yang memiliki username sama, tapi UID-nya berbeda dengan user saat ini
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('username', isEqualTo: newUsername)
+          .get();
+
+      bool isTaken = false;
+      for (var doc in querySnapshot.docs) {
+        if (doc.id != user!.uid) {
+          isTaken = true;
+          break;
+        }
+      }
+
+      if (isTaken) {
+        throw 'Username sudah digunakan. Silakan pilih yang lain.';
+      }
+
+      // 2. JIKA UNIK, LANJUTKAN UPDATE
       await FirebaseFirestore.instance.collection('users').doc(user!.uid).set({
-        'username': _usernameController.text.trim(),
+        'username': newUsername,
         'phone': _phoneController.text.trim(),
-        'email': user!.email, 
-      }, SetOptions(merge: true)); 
+        'email': user!.email,
+      }, SetOptions(merge: true));
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -40,9 +69,9 @@ class _AccountsPageState extends State<AccountsPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal memperbarui: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.toString())));
       }
     } finally {
       if (mounted) setState(() => _isUpdating = false);
@@ -53,12 +82,15 @@ class _AccountsPageState extends State<AccountsPage> {
   void _showPasswordDialog() {
     final TextEditingController _oldPassController = TextEditingController();
     final TextEditingController _newPassController = TextEditingController();
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: cardBackgroundColor,
-        title: const Text('Ganti Password', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Ganti Password',
+          style: TextStyle(color: Colors.white),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -68,20 +100,29 @@ class _AccountsPageState extends State<AccountsPage> {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
           ElevatedButton(
             onPressed: () async {
               try {
                 AuthCredential credential = EmailAuthProvider.credential(
-                    email: user!.email!, password: _oldPassController.text.trim());
+                  email: user!.email!,
+                  password: _oldPassController.text.trim(),
+                );
                 await user!.reauthenticateWithCredential(credential);
                 await user!.updatePassword(_newPassController.text.trim());
                 if (mounted) {
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Password diganti!')));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Password diganti!')),
+                  );
                 }
               } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal: Password lama salah')));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Gagal: Password lama salah')),
+                );
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: primaryColor),
@@ -103,7 +144,10 @@ class _AccountsPageState extends State<AccountsPage> {
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: StreamBuilder<DocumentSnapshot>(
-        stream: FirebaseFirestore.instance.collection('users').doc(user?.uid).snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .doc(user?.uid)
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -112,10 +156,12 @@ class _AccountsPageState extends State<AccountsPage> {
           if (snapshot.hasData && snapshot.data!.exists) {
             var data = snapshot.data!.data() as Map<String, dynamic>;
             // Isi controller jika field tidak kosong
-            if (_usernameController.text.isEmpty) _usernameController.text = data['username'] ?? '';
-            if (_phoneController.text.isEmpty) _phoneController.text = data['phone'] ?? '';
+            if (_usernameController.text.isEmpty)
+              _usernameController.text = data['username'] ?? '';
+            if (_phoneController.text.isEmpty)
+              _phoneController.text = data['phone'] ?? '';
           }
-          
+
           _emailController.text = user?.email ?? '';
 
           return SingleChildScrollView(
@@ -131,24 +177,38 @@ class _AccountsPageState extends State<AccountsPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Account Settings', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                      const Text(
+                        'Account Settings',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       const Divider(color: Colors.white10, height: 30),
-                      
+
                       // FORM KOLOM INPUT
                       _buildFormInput("Username", _usernameController),
-                      _buildFormInput("Email", _emailController, enabled: false), // Email tidak bisa diedit
+                      _buildFormInput(
+                        "Email",
+                        _emailController,
+                        enabled: false,
+                      ), // Email tidak bisa diedit
                       _buildFormInput("No Telepon", _phoneController),
 
                       Align(
                         alignment: Alignment.centerLeft,
                         child: TextButton(
                           onPressed: _showPasswordDialog,
-                          child: Text("Ganti Password?", style: TextStyle(color: primaryColor)),
+                          child: Text(
+                            "Ganti Password?",
+                            style: TextStyle(color: primaryColor),
+                          ),
                         ),
                       ),
-                      
+
                       const SizedBox(height: 20),
-                      
+
                       // Tombol Update & Delete
                       Row(
                         children: [
@@ -158,19 +218,41 @@ class _AccountsPageState extends State<AccountsPage> {
                               onPressed: _isUpdating ? null : _updateProfile,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: primaryColor,
-                                padding: const EdgeInsets.symmetric(vertical: 14)
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
                               ),
-                              child: _isUpdating 
-                                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                                : const Text('Update Settings', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                              child: _isUpdating
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Text(
+                                      'Update Settings',
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                             ),
                           ),
                           const SizedBox(width: 10),
                           Expanded(
                             child: ElevatedButton(
                               onPressed: () => _showDeleteConfirm(),
-                              style: ElevatedButton.styleFrom(backgroundColor: Colors.red, padding: const EdgeInsets.symmetric(vertical: 14)),
-                              child: const Text('Delete', style: TextStyle(color: Colors.white)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                              ),
+                              child: const Text(
+                                'Delete',
+                                style: TextStyle(color: Colors.white),
+                              ),
                             ),
                           ),
                         ],
@@ -182,10 +264,17 @@ class _AccountsPageState extends State<AccountsPage> {
                 TextButton(
                   onPressed: () async {
                     await FirebaseAuth.instance.signOut();
-                    if (mounted) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginPage()));
+                    if (mounted)
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (_) => const LoginPage()),
+                      );
                   },
-                  child: const Text("Logout", style: TextStyle(color: Colors.grey)),
-                )
+                  child: const Text(
+                    "Logout",
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ),
               ],
             ),
           );
@@ -195,11 +284,18 @@ class _AccountsPageState extends State<AccountsPage> {
   }
 
   // Widget untuk baris input form
-  Widget _buildFormInput(String label, TextEditingController controller, {bool enabled = true}) {
+  Widget _buildFormInput(
+    String label,
+    TextEditingController controller, {
+    bool enabled = true,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white70, fontSize: 14),
+        ),
         const SizedBox(height: 8),
         TextField(
           controller: controller,
@@ -208,7 +304,10 @@ class _AccountsPageState extends State<AccountsPage> {
           decoration: InputDecoration(
             filled: true,
             fillColor: Colors.black,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide.none,
+            ),
           ),
         ),
         const SizedBox(height: 16),
@@ -216,7 +315,11 @@ class _AccountsPageState extends State<AccountsPage> {
     );
   }
 
-  Widget _buildPopupTextField(TextEditingController controller, String hint, bool obscure) {
+  Widget _buildPopupTextField(
+    TextEditingController controller,
+    String hint,
+    bool obscure,
+  ) {
     return TextField(
       controller: controller,
       obscureText: obscure,
@@ -238,12 +341,22 @@ class _AccountsPageState extends State<AccountsPage> {
         backgroundColor: cardBackgroundColor,
         title: const Text('Hapus Akun?', style: TextStyle(color: Colors.white)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
           TextButton(
             onPressed: () async {
-              await FirebaseFirestore.instance.collection('users').doc(user!.uid).delete();
+              await FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(user!.uid)
+                  .delete();
               await user!.delete();
-              if (mounted) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginPage()));
+              if (mounted)
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginPage()),
+                );
             },
             child: const Text('Hapus', style: TextStyle(color: Colors.red)),
           ),
