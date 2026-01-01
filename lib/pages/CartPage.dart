@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 // ============================ PAGES ============================
 import 'AccountsPage.dart';
 import 'BlogPage.dart';
@@ -24,6 +26,7 @@ class _CartPageState extends State<CartPage> {
     symbol: 'Rp ',
     decimalDigits: 0,
   );
+  final User? currentUser = FirebaseAuth.instance.currentUser;
 
   @override
   void initState() {
@@ -94,6 +97,30 @@ class _CartPageState extends State<CartPage> {
     );
   }
 
+  Future<void> _savePurchasesToFirestore() async {
+    if (currentUser == null) return;
+
+    try {
+      for (var item in _cartItems) {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUser!.uid)
+            .collection('purchases')
+            .add({
+              'productName': item['productName'],
+              'productPrice': item['productPrice'],
+              'productSeller': item['productSeller'],
+              'productCategory': item['productCategory'],
+              'productImage': item['productImage'],
+              'quantity': item['quantity'],
+              'purchaseDate': FieldValue.serverTimestamp(),
+            });
+      }
+    } catch (e) {
+      print('Error saving purchases: $e');
+    }
+  }
+
   void _checkout() {
     if (_cartItems.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -123,8 +150,11 @@ class _CartPageState extends State<CartPage> {
           ),
           TextButton(
             style: TextButton.styleFrom(backgroundColor: Colors.green),
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
+
+              await _savePurchasesToFirestore();
+
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Checkout berhasil!'),
@@ -135,6 +165,11 @@ class _CartPageState extends State<CartPage> {
               setState(() {
                 _cartItems.clear();
               });
+
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const HomePage()),
+              );
             },
             child: const Text('Lanjut', style: TextStyle(color: Colors.white)),
           ),
